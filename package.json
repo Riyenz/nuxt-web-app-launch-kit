@@ -12,16 +12,19 @@
   },
   "dependencies": {
     "@clerk/nuxt": "^1.13.7",
-    "@iconify-json/lucide": "^1.2.81",
-    "@iconify-json/simple-icons": "^1.2.63",
+    "@iconify-json/hugeicons": "^1.2.20",
     "@nuxt/ui": "^4.2.1",
-    "@prisma/nuxt": "^0.3.0",
+    "@prisma/adapter-libsql": "^7.1.0",
+    "@prisma/client": "^7.1.0",
+    "dotenv": "^17.2.3",
     "nuxt": "^4.2.2"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.12.1",
+    "@types/node": "^25.0.2",
     "eslint": "^9.39.2",
-    "prisma": "^6.19.1",
+    "eslint-plugin-better-tailwindcss": "^3.8.0",
+    "prisma": "^7.1.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.8"
   },
