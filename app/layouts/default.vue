@@ -13,12 +13,18 @@
       <template #right>
         <UColorModeButton />
 
-        <UButton
-          icon="hugeicons:login-circle-01"
-          aria-label="Login"
-          variant="solid"
-          label="Login"
-        />
+        <SignedOut>
+          <UButton
+            icon="hugeicons:login-circle-01"
+            aria-label="Login"
+            variant="solid"
+            label="Login"
+            @click="clerk?.openSignIn()"
+          />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
       </template>
     </UHeader>
 
@@ -48,3 +54,9 @@
     </UFooter>
   </UApp>
 </template>
+
+<script lang="ts" setup>
+import { useClerk } from '@clerk/vue'
+
+const clerk = useClerk()
+</script>
