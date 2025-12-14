@@ -28,7 +28,7 @@ install: ## Install dependencies
 
 # Cleanup
 clean: ## Clean build artifacts
-	rm -rf .output .nuxt node_modules/.vite
+	rm -rf .output .nuxt node_modules
 
 # Combined commands
 check: lint typecheck ## Run all quality checks

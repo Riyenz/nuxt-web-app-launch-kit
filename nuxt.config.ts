@@ -2,8 +2,7 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui',
-    '@prisma/nuxt'
+    '@nuxt/ui'
   ],
 
   devtools: {
