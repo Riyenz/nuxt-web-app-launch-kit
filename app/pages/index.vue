@@ -17,7 +17,7 @@
                     description: 'Built on the latest Nuxt framework with full TypeScript support, file-based routing, and server-side rendering out of the box.'
                   },
                   {
-                    icon: 'hugeicons:palette-01',
+                    icon: 'hugeicons:paint-brush-04',
                     title: 'Nuxt UI 4',
                     description: 'Beautiful, accessible components powered by Tailwind CSS and Headless UI. Dark mode and customizable themes included.'
                   },
