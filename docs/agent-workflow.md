@@ -18,6 +18,7 @@ All code changes follow these phases (details in [Workflow Phases](workflow-phas
 ## Mandatory Validation
 
 After every code change, run validation (see [Commands Reference](commands-reference.md)):
+
 - Lint must pass
 - Typecheck must pass
 
@@ -42,7 +43,10 @@ After every code change, run validation (see [Commands Reference](commands-refer
 ## Project Conventions
 
 - **Booleans**: `is` prefix only
-- **Prisma**: Import from `~/lib/prisma`
+- **Prisma**:
+  - Client-side: Import from `~/app/lib/prisma`
+  - Server-side (API): Import from `../../app/lib/prisma`
+- **API Endpoints**: Create in `server/api/` with file-based routing
 - **Package Manager**: Bun only
 - **Style**: ESLint config (1TBS, no trailing commas)
 

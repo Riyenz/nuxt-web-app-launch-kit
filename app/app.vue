@@ -1,6 +1,3 @@
-<script setup>
-</script>
-
 <template>
   <UApp>
     <UHeader>

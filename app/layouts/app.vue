@@ -1,7 +1,7 @@
 <template>
-  <UMain>
+  <UContainer class="py-6">
     <slot />
-  </UMain>
+  </UContainer>
 </template>
 
 <script lang="ts" setup>

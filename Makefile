@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy
+.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed
 
 # Default target
 help: ## Show this help message
@@ -59,6 +59,9 @@ prisma-reset: ## Reset database (dev only - WARNING: deletes all data)
 
 prisma-deploy: ## Apply migrations in production
 	bunx prisma migrate deploy
+
+prisma-seed: ## Seed the database with mock data
+	bun run seed
 
 # Dependencies
 install: ## Install dependencies

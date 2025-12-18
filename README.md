@@ -141,6 +141,7 @@ make help            # Show all available make commands
 
 Comprehensive documentation is available in the `docs/` directory:
 
+- **[Developer Workflow](docs/developer-workflow.md)** - Complete setup guide from install to running the app
 - **[Tech Stack](docs/tech-stack.md)** - Technology choices and when to use each
 - **[Commands Reference](docs/commands-reference.md)** - All available commands and workflows
 - **[Prisma Workflow](docs/prisma-workflow.md)** - Database schema, migrations, and best practices
