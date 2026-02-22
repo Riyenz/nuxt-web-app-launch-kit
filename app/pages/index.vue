@@ -91,7 +91,7 @@ const links = computed(() => {
     {
       label: 'Login',
       onClick: () => clerk.value?.openSignIn(),
-      icon: 'hugeicons:login-circle-01'
+      icon: 'hugeicons:login-02'
     }
   ]
 })
