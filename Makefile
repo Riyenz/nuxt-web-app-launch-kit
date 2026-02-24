@@ -16,56 +16,56 @@ init: ## Complete project setup (install deps, setup env, init database)
 		exit 1; \
 	fi
 	@echo "📦 Installing dependencies..."
-	@bun install
+	@pnpm install
 	@echo "🗄️  Generating Prisma Client..."
-	@bunx prisma generate
+	@pnpm exec prisma generate
 	@echo "🔄 Running database migrations..."
-	@bunx prisma migrate dev
+	@pnpm exec prisma migrate dev
 	@echo "✅ Setup complete! Run 'make dev' to start the development server."
 
 # Development
 dev: ## Start development server
-	bun run dev
+	pnpm run dev
 
 build: ## Build the application
-	bun run build
+	pnpm run build
 
 preview: ## Preview the built application
-	bun run preview
+	pnpm run preview
 
 # Quality checks
 lint: ## Run ESLint
-	bun run lint
+	pnpm run lint
 
 lint-fix: ## Run ESLint and auto-fix issues
-	bun run lint --fix
+	pnpm run lint --fix
 
 typecheck: ## Run TypeScript type checking
-	bun run typecheck
+	pnpm run typecheck
 
 # Database (Prisma)
 prisma-generate: ## Generate Prisma Client
-	bunx prisma generate
+	pnpm exec prisma generate
 
 prisma-migrate: ## Create and apply a new migration
 	@read -p "Enter migration name: " name; \
-	bunx prisma migrate dev --name $$name
+	pnpm exec prisma migrate dev --name $$name
 
 prisma-studio: ## Open Prisma Studio GUI
-	bunx prisma studio
+	pnpm exec prisma studio
 
 prisma-reset: ## Reset database (dev only - WARNING: deletes all data)
-	bunx prisma migrate reset
+	pnpm exec prisma migrate reset
 
 prisma-deploy: ## Apply migrations in production
-	bunx prisma migrate deploy
+	pnpm exec prisma migrate deploy
 
 prisma-seed: ## Seed the database with mock data
-	bun run seed
+	pnpm run seed
 
 # Dependencies
 install: ## Install dependencies
-	bun install
+	pnpm install
 
 # Cleanup
 clean: ## Clean build artifacts

@@ -31,7 +31,7 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 
 1. **Install dependencies**:
    ```bash
-   bun install
+   pnpm install
    ```
 
 2. **Set up environment variables**:
@@ -42,13 +42,13 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 
 3. **Initialize database**:
    ```bash
-   bunx prisma generate
-   bunx prisma migrate dev
+   pnpm exec prisma generate
+   pnpm exec prisma migrate dev
    ```
 
 4. **Start development server**:
    ```bash
-   bun run dev
+   pnpm run dev
    ```
 
 ## Environment Variable Best Practices
@@ -63,7 +63,7 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 ### Database connection errors
 - Check that `DATABASE_URL` in `.env` is correct
 - Verify `prisma/dev.db` file exists
-- Run `bunx prisma generate` to regenerate the client
+- Run `pnpm exec prisma generate` to regenerate the client
 
 ### Clerk authentication errors
 - Verify both Clerk keys are set correctly

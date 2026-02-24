@@ -9,10 +9,10 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "seed": "bun run prisma/seed.ts"
+    "seed": "pnpm tsx prisma/seed.ts"
   },
   "prisma": {
-    "seed": "bun run prisma/seed.ts"
+    "seed": "pnpm tsx prisma/seed.ts"
   },
   "dependencies": {
     "@clerk/nuxt": "^1.13.7",
@@ -33,8 +33,20 @@
     "eslint": "^9.39.2",
     "eslint-plugin-better-tailwindcss": "^3.8.0",
     "prisma": "^7.1.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.8"
   },
-  "packageManager": "bun@1.0.0"
+  "packageManager": "pnpm@10.6.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@parcel/watcher",
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "unrs-resolver",
+      "vue-demi"
+    ]
+  }
 }

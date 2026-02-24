@@ -19,8 +19,8 @@ The CI workflow runs on:
 
 ### Important Notes
 
-- **Package manager**: CI uses **Bun** (same as local development)
-  - Both local and CI use Bun for consistency
+- **Package manager**: CI uses **pnpm** (same as local development)
+  - Both local and CI use pnpm for consistency
 - **No build step**: The workflow only validates code quality (lint + typecheck)
 - **No tests**: Testing step not yet configured
 
@@ -33,8 +33,8 @@ Before pushing code, ensure it will pass CI by running:
 make check
 
 # Or run individually
-bun run lint
-bun run typecheck
+pnpm run lint
+pnpm run typecheck
 ```
 
 See [agent-workflow.md](agent-workflow.md) for the complete workflow.
@@ -42,17 +42,17 @@ See [agent-workflow.md](agent-workflow.md) for the complete workflow.
 ## Troubleshooting CI Failures
 
 ### Lint failures
-- Run `bun run lint` locally to see the same errors
+- Run `pnpm run lint` locally to see the same errors
 - Fix lint errors according to [naming-conventions.md](naming-conventions.md)
-- Auto-fix some issues: `bun run lint --fix` (if configured)
+- Auto-fix some issues: `pnpm run lint --fix` (if configured)
 
 ### Type check failures
-- Run `bun run typecheck` locally
+- Run `pnpm run typecheck` locally
 - Check for type errors in modified files
 - Ensure Prisma Client is regenerated after schema changes
 
 ## Workflow Configuration
 
 The workflow is defined in `.github/workflows/ci.yml`. Key configuration:
-- Bun version (uses latest)
+- pnpm version (managed via corepack/packageManager field)
 - Steps for dependency installation, lint, and typecheck

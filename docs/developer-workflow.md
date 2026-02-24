@@ -6,7 +6,7 @@
 
 Before starting, ensure you have:
 
-1. **Bun v1.0.0 or higher** - Install from [bun.sh](https://bun.sh)
+1. **pnpm v10 or higher** - Install from [pnpm.io](https://pnpm.io)
 2. **Node.js v18 or higher** - Install from [nodejs.org](https://nodejs.org)
 3. **PostgreSQL Database** - Local installation or cloud database (Neon, Supabase, Railway, etc.)
 4. **Clerk Account** - Sign up at [clerk.com](https://clerk.com) (free tier available)
@@ -14,24 +14,25 @@ Before starting, ensure you have:
 
 ## Installation Guide
 
-### Step 1: Install Bun
+### Step 1: Install pnpm
 
-**macOS/Linux:**
+**Using npm:**
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+npm install -g pnpm
 ```
 
-**Windows:**
+**Using Corepack (recommended):**
 
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
 ```
 
 **Verify installation:**
 
 ```bash
-bun --version
+pnpm --version
 ```
 
 ### Step 2: Clone the Repository
@@ -70,7 +71,7 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 ### Step 4: Install Dependencies
 
 ```bash
-bun install
+pnpm install
 ```
 
 ### Step 5: Set Up Database
@@ -78,25 +79,25 @@ bun install
 **Generate Prisma Client:**
 
 ```bash
-bunx prisma generate
+pnpm exec prisma generate
 ```
 
 **Run Database Migrations:**
 
 ```bash
-bunx prisma migrate dev
+pnpm exec prisma migrate dev
 ```
 
 **Optional: Seed the Database:**
 
 ```bash
-bun run seed
+pnpm run seed
 ```
 
 ### Step 6: Start Development Server
 
 ```bash
-bun run dev
+pnpm run dev
 ```
 
 Or using Make:
