@@ -28,8 +28,8 @@ jobs:
 
       - name: Start Prisma Dev DB
         run: |
-          pnpm dlx prisma dev --detach
-          URL=$(pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;//')
+          DATABASE_URL=postgres://placeholder pnpm dlx prisma dev --detach
+          URL=$(DATABASE_URL=postgres://placeholder pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;//')
           echo "DATABASE_URL=$URL" >> $GITHUB_ENV
 
       - name: Lint
