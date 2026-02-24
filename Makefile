@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed
+.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop
 
 # Default target
 help: ## Show this help message
@@ -17,6 +17,16 @@ init: ## Complete project setup (install deps, setup env, init database)
 	fi
 	@echo "📦 Installing dependencies..."
 	@pnpm install
+	@echo "🗄️  Starting Prisma Dev DB..."
+	@pnpm dlx prisma dev --detach
+	@echo "🔗 Updating DATABASE_URL in .env..."
+	@URL=$$(pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;;// '); \
+	if [ -n "$$URL" ]; then \
+		sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL='"$$URL"'|' .env; \
+		echo "   DATABASE_URL=$$URL"; \
+	else \
+		echo "⚠️  Could not extract DATABASE_URL from prisma dev ls"; \
+	fi
 	@echo "🗄️  Generating Prisma Client..."
 	@pnpm exec prisma generate
 	@echo "🔄 Running database migrations..."
@@ -63,6 +73,12 @@ prisma-deploy: ## Apply migrations in production
 prisma-seed: ## Seed the database with mock data
 	pnpm run seed
 
+prisma-dev: ## Start Prisma Dev DB (detached)
+	pnpm dlx prisma dev --detach
+
+prisma-dev-stop: ## Stop Prisma Dev DB
+	pnpm dlx prisma dev stop default
+
 # Dependencies
 install: ## Install dependencies
 	pnpm install
@@ -73,4 +89,4 @@ clean: ## Clean build artifacts
 
 # Combined commands
 check: lint typecheck ## Run all quality checks
-setup: install ## Setup the project (alias for install)
+setup: install prisma-dev ## Setup the project (install deps + start Prisma Dev DB)
