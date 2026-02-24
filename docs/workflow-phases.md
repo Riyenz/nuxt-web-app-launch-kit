@@ -19,7 +19,7 @@ Write code following project conventions:
 - Follow 1TBS brace style
 - No trailing commas
 - Import Prisma from `~/lib/prisma`
-- Use Bun (not npm/yarn/pnpm)
+- Use pnpm (not npm/yarn/bun)
 - Avoid over-engineering
 - Make only necessary changes
 

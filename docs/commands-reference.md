@@ -6,36 +6,36 @@ All project commands in one place.
 
 ## Important Notes
 
-- Always use **Bun** for all commands (`bun run <script>`)
-- Both local development and CI/CD use Bun (see [ci-cd.md](ci-cd.md))
-- Before marking any code changes as complete, run `bun run lint` and `bun run typecheck` (see [agent-workflow.md](agent-workflow.md))
+- Always use **pnpm** for all commands (`pnpm run <script>`)
+- Both local development and CI/CD use pnpm (see [ci-cd.md](ci-cd.md))
+- Before marking any code changes as complete, run `pnpm run lint` and `pnpm run typecheck` (see [agent-workflow.md](agent-workflow.md))
 
 ## Validation Commands
 
 ```bash
 make check              # Run both lint and typecheck
-bun run lint            # Run ESLint
-bun run lint --fix      # Auto-fix lint issues
-bun run typecheck       # Run TypeScript type checker
+pnpm run lint            # Run ESLint
+pnpm run lint --fix      # Auto-fix lint issues
+pnpm run typecheck       # Run TypeScript type checker
 ```
 
 ## Development Commands
 
 ```bash
-bun run dev             # Start development server
-bun run build           # Build for production
-bun run preview         # Preview production build
-bun install             # Install dependencies
+pnpm run dev             # Start development server
+pnpm run build           # Build for production
+pnpm run preview         # Preview production build
+pnpm install             # Install dependencies
 ```
 
 ## Prisma Commands
 
 ```bash
-bunx prisma generate                        # Regenerate client after schema changes
-bunx prisma migrate dev --name <name>       # Create and apply migration
-bunx prisma migrate deploy                  # Apply migrations in production
-bunx prisma studio                          # Open Prisma Studio GUI
-bunx prisma migrate reset                   # Reset database (dev only)
+pnpm exec prisma generate                        # Regenerate client after schema changes
+pnpm exec prisma migrate dev --name <name>       # Create and apply migration
+pnpm exec prisma migrate deploy                  # Apply migrations in production
+pnpm exec prisma studio                          # Open Prisma Studio GUI
+pnpm exec prisma migrate reset                   # Reset database (dev only)
 ```
 
 ## Makefile Shortcuts
@@ -53,17 +53,17 @@ make clean              # Clean build artifacts
 
 ### After Code Changes
 ```bash
-bun run lint && bun run typecheck
+pnpm run lint && pnpm run typecheck
 ```
 
 ### After Installing Dependencies
 ```bash
-bun install
-bun run lint && bun run typecheck
+pnpm install
+pnpm run lint && pnpm run typecheck
 ```
 
 ### After Schema Changes
 ```bash
-bunx prisma generate
-bun run typecheck
+pnpm exec prisma generate
+pnpm run typecheck
 ```

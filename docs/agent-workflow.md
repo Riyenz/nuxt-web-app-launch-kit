@@ -35,7 +35,7 @@ After every code change, run validation (see [Commands Reference](commands-refer
 ## Quick Start
 
 1. Read existing code
-2. Make changes (use `is` prefix, 1TBS braces, no trailing commas, use Bun)
+2. Make changes (use `is` prefix, 1TBS braces, no trailing commas, use pnpm)
 3. Run validation
 4. Fix errors (see [Error Examples](error-examples.md))
 5. Mark complete only after validation passes
@@ -47,7 +47,7 @@ After every code change, run validation (see [Commands Reference](commands-refer
   - Client-side: Import from `~/app/lib/prisma`
   - Server-side (API): Import from `../../app/lib/prisma`
 - **API Endpoints**: Create in `server/api/` with file-based routing
-- **Package Manager**: Bun only
+- **Package Manager**: pnpm only
 - **Style**: ESLint config (1TBS, no trailing commas)
 
 ## When Validation Fails

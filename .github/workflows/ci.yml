@@ -12,18 +12,31 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install
+        run: pnpm install
+
+      - name: Start Prisma Dev DB
+        run: |
+          DATABASE_URL=postgres://placeholder pnpm dlx prisma dev --detach
+          URL=$(DATABASE_URL=postgres://placeholder pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;//')
+          echo "DATABASE_URL=$URL" >> $GITHUB_ENV
 
       - name: Lint
-        run: bun run lint
+        run: pnpm run lint
+
+      - name: Generate Prisma Client
+        run: pnpm exec prisma generate
 
       - name: Typecheck
-        run: bun run typecheck
+        run: pnpm run typecheck

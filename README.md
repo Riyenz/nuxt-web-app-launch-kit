@@ -8,13 +8,13 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - **Nuxt UI 4.2.1** - Beautiful, accessible UI components built on Tailwind CSS
 - **Clerk Authentication** - Complete auth solution with user management
 - **Prisma ORM** - Type-safe database access with SQLite
-- **Bun Package Manager** - Fast, modern package manager
+- **pnpm Package Manager** - Fast, efficient package manager
 - **ESLint & TypeScript** - Code quality and type safety enforced
 - **CI/CD Ready** - GitHub Actions workflow included
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) v1.0.0 or higher
+- [pnpm](https://pnpm.io) v10 or higher
 - [Node.js](https://nodejs.org) v18 or higher (for compatibility)
 - [Clerk Account](https://clerk.com) (free tier available)
 
@@ -135,7 +135,7 @@ make help            # Show all available make commands
 | TypeScript   | 5.9.3   | Type safety                      |
 | Tailwind CSS | -       | Utility-first CSS (via Nuxt UI)  |
 | ESLint       | 9.39.2  | Code linting                     |
-| Bun          | 1.0.0+  | Package manager & runtime        |
+| pnpm         | 10.6.0+ | Package manager                  |
 
 ## Documentation
 

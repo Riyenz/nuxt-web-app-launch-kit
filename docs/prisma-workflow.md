@@ -10,24 +10,24 @@ This project uses **Prisma 7** with the new `prisma.config.ts` configuration sys
 
 ```bash
 # Generate Prisma Client after schema changes
-bunx prisma generate
+pnpm exec prisma generate
 
 # Create and apply migrations
-bunx prisma migrate dev --name <migration_name>
+pnpm exec prisma migrate dev --name <migration_name>
 
 # Apply migrations in production
-bunx prisma migrate deploy
+pnpm exec prisma migrate deploy
 
 # Open Prisma Studio
-bunx prisma studio
+pnpm exec prisma studio
 
 # Reset database (dev only)
-bunx prisma migrate reset
+pnpm exec prisma migrate reset
 ```
 
 ## Important Workflow Rules
 
-1. **After any `schema.prisma` changes**: Run `bunx prisma generate` to regenerate the client in `app/generated/prisma/`
+1. **After any `schema.prisma` changes**: Run `pnpm exec prisma generate` to regenerate the client in `app/generated/prisma/`
 2. **Configuration**: Managed in `prisma.config.ts` (Prisma 7 feature)
 3. **Client location**: Generated to `app/generated/prisma/` (custom output path)
 

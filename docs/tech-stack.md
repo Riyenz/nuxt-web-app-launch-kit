@@ -8,7 +8,7 @@
 - **UI Library**: Nuxt UI (with Tailwind CSS)
 - **Authentication**: Clerk (@clerk/nuxt)
 - **Database ORM**: Prisma with PostgreSQL (Neon adapter)
-- **Package Manager**: Bun
+- **Package Manager**: pnpm
 - **Linting**: ESLint with Nuxt ESLint module
 - **Type Checking**: TypeScript with vue-tsc
 
