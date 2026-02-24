@@ -36,5 +36,8 @@
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.8"
   },
+  "optionalDependencies": {
+    "@oxc-parser/binding-linux-x64-gnu": "^0.102.0"
+  },
   "packageManager": "bun@1.0.0"
 }
