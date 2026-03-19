@@ -7,7 +7,7 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - **Nuxt 4.2.2** - Latest Nuxt framework with full TypeScript support
 - **Nuxt UI 4.2.1** - Beautiful, accessible UI components built on Tailwind CSS
 - **Clerk Authentication** - Complete auth solution with user management
-- **Prisma ORM** - Type-safe database access with SQLite
+- **Prisma ORM** - Type-safe database access with Neon PostgreSQL
 - **pnpm Package Manager** - Fast, efficient package manager
 - **ESLint & TypeScript** - Code quality and type safety enforced
 - **CI/CD Ready** - GitHub Actions workflow included
@@ -193,7 +193,7 @@ make prisma-migrate      # Create and apply migration (will prompt for name)
 
 | Variable                            | Required | Description                       |
 | ----------------------------------- | -------- | --------------------------------- |
-| `DATABASE_URL`                      | Yes      | SQLite database connection string |
+| `DATABASE_URL`                      | Yes      | Neon PostgreSQL connection string  |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk publishable key (public)    |
 | `NUXT_CLERK_SECRET_KEY`             | Yes      | Clerk secret key (private)        |
 
