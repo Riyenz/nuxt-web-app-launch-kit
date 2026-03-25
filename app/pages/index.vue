@@ -816,7 +816,7 @@ const plans = [
     description: 'For validating early ideas.',
     cta: 'Use starter',
     featured: false,
-    items: ['Core landing page', 'Auth scaffolding', 'SQLite + Prisma', 'Basic docs']
+    items: ['Core landing page', 'Auth scaffolding', 'PostgreSQL + Prisma', 'Basic docs']
   },
   {
     name: 'Growth',

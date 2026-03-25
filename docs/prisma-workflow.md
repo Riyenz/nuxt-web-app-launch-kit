@@ -47,9 +47,9 @@ The singleton pattern in `lib/prisma.ts` prevents multiple instances during hot 
 
 ## Schema Details
 
-- **Provider**: SQLite (`datasource.provider = "sqlite"`)
-- **Client output**: `../app/generated/prisma`
-- **Database URL**: From `DATABASE_URL` environment variable
+- **Provider**: PostgreSQL (`datasource.provider = "postgresql"`) via Neon
+- **Client output**: `../generated/prisma`
+- **Database URL**: From `DATABASE_URL` environment variable (Neon connection string)
 - **Example models**: `User`, `Post` with relations
 
 ## File Locations
@@ -57,6 +57,5 @@ The singleton pattern in `lib/prisma.ts` prevents multiple instances during hot 
 - Schema: `prisma/schema.prisma`
 - Configuration: `prisma.config.ts`
 - Migrations: `prisma/migrations/`
-- Database file: `prisma/dev.db` (development)
-- Generated client: `app/generated/prisma/` (do not edit)
+- Generated client: `generated/prisma/` (do not edit)
 - Singleton instance: `lib/prisma.ts`

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a **Nuxt 4 web application starter kit** featuring Nuxt UI for components, Clerk for authentication, and Prisma ORM for SQLite database management. The project uses pnpm as the package manager.
+This is a **Nuxt 4 web application starter kit** featuring Nuxt UI for components, Clerk for authentication, and Prisma ORM with Neon PostgreSQL. The project uses pnpm as the package manager.
 
 ## Agent Workflow
 

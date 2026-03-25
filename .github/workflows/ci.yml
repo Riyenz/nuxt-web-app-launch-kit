@@ -26,17 +26,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Start Prisma Dev DB
-        run: |
-          DATABASE_URL=postgres://placeholder pnpm dlx prisma dev --detach
-          URL=$(DATABASE_URL=postgres://placeholder pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;//')
-          echo "DATABASE_URL=$URL" >> $GITHUB_ENV
-
       - name: Lint
         run: pnpm run lint
 
       - name: Generate Prisma Client
         run: pnpm exec prisma generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Typecheck
         run: pnpm run typecheck
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
