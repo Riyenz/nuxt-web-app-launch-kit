@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "setup": "./scripts/conductor/setup.sh",
+    "archive": "./scripts/conductor/archive.sh",
+    "run": "pnpm run dev"
+  }
+}

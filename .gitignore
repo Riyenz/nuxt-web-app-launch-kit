@@ -27,12 +27,8 @@ logs
 *.db
 
 /app/generated/prisma
-
 /lib/generated/prisma
-
-/app/generated/prisma
-
-/app/generated/prisma
-
 /generated/prisma
 
+# Conductor
+.context

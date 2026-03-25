@@ -39,7 +39,7 @@
       <template #right>
         <UColorModeButton />
 
-        <SignedOut>
+        <Show when="signed-out">
           <UButton
             icon="hugeicons:login-02"
             aria-label="Login"
@@ -47,10 +47,10 @@
             label="Login"
             @click="clerk?.openSignIn()"
           />
-        </SignedOut>
-        <SignedIn>
+        </Show>
+        <Show when="signed-in">
           <UserButton />
-        </SignedIn>
+        </Show>
       </template>
     </UHeader>
 

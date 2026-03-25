@@ -89,4 +89,4 @@ clean: ## Clean build artifacts
 
 # Combined commands
 check: lint typecheck ## Run all quality checks
-setup: install prisma-dev ## Setup the project (install deps + start Prisma Dev DB)
+setup: install prisma-generate ## Setup the project (install deps + generate Prisma client)
