@@ -14,4 +14,7 @@ node ./scripts/conductor/neon-workspace-db.mjs setup
 echo "Running project setup..."
 make setup
 
+echo "Running database migrations..."
+pnpm exec prisma migrate dev
+
 echo "=== Setup complete ==="
