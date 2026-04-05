@@ -1,0 +1,132 @@
+name: pr-neon-branch
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency:
+  group: pr-neon-branch-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  NEON_PARENT_BRANCH: ${{ secrets.NEON_PARENT_BRANCH }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+jobs:
+  provision:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Provision Neon branch
+        id: neon
+        run: |
+          DATABASE_URL=$(node scripts/ci/neon-pr-branch.mjs setup "$PR_NUMBER")
+          echo "::add-mask::$DATABASE_URL"
+          echo "database_url=$DATABASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Run Prisma migrations
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.database_url }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL is empty"
+            exit 1
+          fi
+          pnpm exec prisma migrate deploy
+
+      - name: Update preview DATABASE_URL
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.database_url }}
+        run: |
+          printf '%s' "$DATABASE_URL" | pnpm dlx vercel env add DATABASE_URL preview "$GIT_BRANCH" --force --token "$VERCEL_TOKEN"
+
+  cleanup:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Delete Neon branch
+        run: node scripts/ci/neon-pr-branch.mjs teardown "$PR_NUMBER"
+
+      - name: Remove preview DATABASE_URL
+        run: |
+          node --input-type=module <<'EOF'
+          const token = process.env.VERCEL_TOKEN
+          const projectId = process.env.VERCEL_PROJECT_ID
+          const teamId = process.env.VERCEL_ORG_ID
+          const gitBranch = process.env.GIT_BRANCH
+
+          if (!token || !projectId || !teamId || !gitBranch) {
+            throw new Error('VERCEL_TOKEN, VERCEL_PROJECT_ID, VERCEL_ORG_ID, and GIT_BRANCH are required')
+          }
+
+          const listResponse = await fetch(`https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+
+          if (!listResponse.ok) {
+            throw new Error(`Failed to list Vercel env vars: ${listResponse.status} ${await listResponse.text()}`)
+          }
+
+          const payload = await listResponse.json()
+          const envs = Array.isArray(payload.envs) ? payload.envs : []
+          const matches = envs.filter((envVar) => envVar.key === 'DATABASE_URL' && envVar.gitBranch === gitBranch)
+
+          for (const envVar of matches) {
+            const deleteResponse = await fetch(`https://api.vercel.com/v9/projects/${projectId}/env/${envVar.id}?teamId=${teamId}`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            })
+
+            if (!deleteResponse.ok) {
+              throw new Error(`Failed to delete Vercel env var ${envVar.id}: ${deleteResponse.status} ${await deleteResponse.text()}`)
+            }
+          }
+          EOF

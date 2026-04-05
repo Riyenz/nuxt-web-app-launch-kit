@@ -1,16 +1,24 @@
 # CI/CD
 
-**Read this when**: You need to understand the continuous integration pipeline, troubleshoot CI failures, or modify the GitHub Actions workflow.
+**Read this when**: You need to understand the continuous integration pipeline, troubleshoot CI failures, or modify the GitHub Actions workflows.
 
-## GitHub Actions Workflow
+## GitHub Actions Workflows
 
-The project uses GitHub Actions for continuous integration. The workflow file is located at `.github/workflows/ci.yml`.
+The project uses GitHub Actions for continuous integration and PR database provisioning.
+
+- `.github/workflows/ci.yml` runs linting and type checking on pushes.
+- `.github/workflows/pr-neon-branch.yml` provisions a Neon branch per PR targeting `master`, applies Prisma migrations, and updates the Vercel preview `DATABASE_URL`.
 
 ### Triggers
 
 The CI workflow runs on:
 - Every push to any branch
-- Pull requests
+
+The PR Neon workflow runs on pull request lifecycle events targeting `master`:
+- `opened`
+- `reopened`
+- `synchronize`
+- `closed`
 
 ### CI Pipeline Steps
 
@@ -21,8 +29,10 @@ The CI workflow runs on:
 
 - **Package manager**: CI uses **pnpm** (same as local development)
   - Both local and CI use pnpm for consistency
-- **No build step**: The workflow only validates code quality (lint + typecheck)
+- **No build step**: The CI workflow only validates code quality (lint + typecheck)
 - **No tests**: Testing step not yet configured
+- **Preview databases**: PR previews get an isolated Neon branch named `pr-<number>`
+- **Fork PRs**: The Neon workflow skips forked PRs because GitHub does not expose repository secrets there
 
 ## Local Validation Before Push
 
@@ -53,6 +63,11 @@ See [agent-workflow.md](agent-workflow.md) for the complete workflow.
 
 ## Workflow Configuration
 
-The workflow is defined in `.github/workflows/ci.yml`. Key configuration:
-- pnpm version (managed via corepack/packageManager field)
-- Steps for dependency installation, lint, and typecheck
+The workflows are defined in `.github/workflows/ci.yml` and `.github/workflows/pr-neon-branch.yml`.
+
+Key configuration:
+- pnpm version is managed via the `packageManager` field
+- CI installs dependencies, then runs lint and typecheck
+- PR Neon provisioning requires GitHub Actions secrets for Neon and Vercel
+
+See [neon-database-branching.md](neon-database-branching.md) for the full PR database setup.

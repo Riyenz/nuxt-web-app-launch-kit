@@ -20,6 +20,7 @@ Read the appropriate documentation file based on your task:
 - **[Project Architecture](docs/project-architecture.md)** - Understanding project structure and file organization
 - **[Naming Conventions](docs/naming-conventions.md)** - Writing code that follows project style (boolean prefixes, brace style, commas)
 - **[Environment Setup](docs/environment-setup.md)** - Setting up environment variables or initial project setup
+- **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
 
 ## Quick Start

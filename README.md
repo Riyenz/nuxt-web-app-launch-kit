@@ -148,6 +148,7 @@ Comprehensive documentation is available in the `docs/` directory:
 - **[Project Architecture](docs/project-architecture.md)** - File organization and structure
 - **[Naming Conventions](docs/naming-conventions.md)** - Code style and naming guidelines
 - **[Environment Setup](docs/environment-setup.md)** - Environment variables and configuration
+- **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
 - **[CI/CD](docs/ci-cd.md)** - Continuous integration and deployment
 - **[Agent Workflow](docs/agent-workflow.md)** - Development workflow for AI-assisted coding
 
