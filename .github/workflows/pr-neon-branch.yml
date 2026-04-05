@@ -73,53 +73,30 @@ jobs:
           const token = process.env.VERCEL_TOKEN
           const projectId = process.env.VERCEL_PROJECT_ID
           const teamId = process.env.VERCEL_ORG_ID
-          const gitBranch = process.env.GIT_BRANCH
           const databaseUrl = process.env.DATABASE_URL
 
           const baseUrl = `https://api.vercel.com/v10/projects/${projectId}/env`
           const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
-          async function upsertEnvVar() {
-            const listRes = await fetch(`${baseUrl}?teamId=${teamId}&gitBranch=${gitBranch}`, { headers })
-            if (!listRes.ok) throw new Error(`List env vars failed: ${listRes.status} ${await listRes.text()}`)
-            const { envs = [] } = await listRes.json()
-            const existing = envs.find((e) => e.key === 'DATABASE_URL' && e.gitBranch === gitBranch)
+          const listRes = await fetch(`${baseUrl}?teamId=${teamId}`, { headers })
+          if (!listRes.ok) throw new Error(`List env vars failed: ${listRes.status} ${await listRes.text()}`)
+          const { envs = [] } = await listRes.json()
+          const existing = envs.find((e) => e.key === 'DATABASE_URL' && e.target?.includes('preview') && !e.gitBranch)
 
-            if (existing) {
-              const patchRes = await fetch(`${baseUrl}/${existing.id}?teamId=${teamId}`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ value: databaseUrl })
-              })
-              if (!patchRes.ok) throw new Error(`Patch env var failed: ${patchRes.status} ${await patchRes.text()}`)
-            } else {
-              const createRes = await fetch(`${baseUrl}?teamId=${teamId}`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ key: 'DATABASE_URL', value: databaseUrl, type: 'encrypted', target: ['preview'], gitBranch })
-              })
-              if (!createRes.ok) {
-                const text = await createRes.text()
-                throw new Error(`Create env var failed: ${createRes.status} ${text}`)
-              }
-            }
-          }
-
-          const maxAttempts = 5
-          for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-            try {
-              await upsertEnvVar()
-              break
-            } catch (err) {
-              const isBranchNotFound = err.message.includes('not found in the connected Git repository')
-              if (isBranchNotFound && attempt < maxAttempts) {
-                const delay = attempt * 15
-                console.log(`Branch not yet known to Vercel, retrying in ${delay}s (attempt ${attempt}/${maxAttempts})`)
-                await new Promise((r) => setTimeout(r, delay * 1000))
-                continue
-              }
-              throw err
-            }
+          if (existing) {
+            const patchRes = await fetch(`${baseUrl}/${existing.id}?teamId=${teamId}`, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify({ value: databaseUrl })
+            })
+            if (!patchRes.ok) throw new Error(`Patch env var failed: ${patchRes.status} ${await patchRes.text()}`)
+          } else {
+            const createRes = await fetch(`${baseUrl}?teamId=${teamId}`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ key: 'DATABASE_URL', value: databaseUrl, type: 'encrypted', target: ['preview'] })
+            })
+            if (!createRes.ok) throw new Error(`Create env var failed: ${createRes.status} ${await createRes.text()}`)
           }
           SCRIPT
 
@@ -149,10 +126,9 @@ jobs:
           const token = process.env.VERCEL_TOKEN
           const projectId = process.env.VERCEL_PROJECT_ID
           const teamId = process.env.VERCEL_ORG_ID
-          const gitBranch = process.env.GIT_BRANCH
 
-          if (!token || !projectId || !teamId || !gitBranch) {
-            throw new Error('VERCEL_TOKEN, VERCEL_PROJECT_ID, VERCEL_ORG_ID, and GIT_BRANCH are required')
+          if (!token || !projectId || !teamId) {
+            throw new Error('VERCEL_TOKEN, VERCEL_PROJECT_ID, and VERCEL_ORG_ID are required')
           }
 
           const listResponse = await fetch(`https://api.vercel.com/v9/projects/${projectId}/env?teamId=${teamId}`, {
@@ -167,7 +143,7 @@ jobs:
 
           const payload = await listResponse.json()
           const envs = Array.isArray(payload.envs) ? payload.envs : []
-          const matches = envs.filter((envVar) => envVar.key === 'DATABASE_URL' && envVar.gitBranch === gitBranch)
+          const matches = envs.filter((envVar) => envVar.key === 'DATABASE_URL' && envVar.target?.includes('preview') && !envVar.gitBranch)
 
           for (const envVar of matches) {
             const deleteResponse = await fetch(`https://api.vercel.com/v9/projects/${projectId}/env/${envVar.id}?teamId=${teamId}`, {
