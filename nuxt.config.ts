@@ -1,3 +1,11 @@
+if (!process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+}
+
+if (!process.env.NUXT_CLERK_SECRET_KEY && process.env.CLERK_SECRET_KEY) {
+  process.env.NUXT_CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
@@ -13,7 +21,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   routeRules: {
-    '/': { prerender: true },
+    '/': { prerender: false },
     '/app/**': { ssr: false, prerender: false }
   },
 
