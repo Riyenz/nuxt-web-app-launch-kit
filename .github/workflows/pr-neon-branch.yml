@@ -69,7 +69,37 @@ jobs:
         env:
           DATABASE_URL: ${{ steps.neon.outputs.database_url }}
         run: |
-          printf '%s' "$DATABASE_URL" | pnpm dlx vercel env add DATABASE_URL preview "$GIT_BRANCH" --force --token "$VERCEL_TOKEN"
+          node --input-type=module <<'SCRIPT'
+          const token = process.env.VERCEL_TOKEN
+          const projectId = process.env.VERCEL_PROJECT_ID
+          const teamId = process.env.VERCEL_ORG_ID
+          const gitBranch = process.env.GIT_BRANCH
+          const databaseUrl = process.env.DATABASE_URL
+
+          const baseUrl = `https://api.vercel.com/v10/projects/${projectId}/env`
+          const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+
+          const listRes = await fetch(`${baseUrl}?teamId=${teamId}&gitBranch=${gitBranch}`, { headers })
+          if (!listRes.ok) throw new Error(`List env vars failed: ${listRes.status} ${await listRes.text()}`)
+          const { envs = [] } = await listRes.json()
+          const existing = envs.find((e) => e.key === 'DATABASE_URL' && e.gitBranch === gitBranch)
+
+          if (existing) {
+            const patchRes = await fetch(`${baseUrl}/${existing.id}?teamId=${teamId}`, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify({ value: databaseUrl })
+            })
+            if (!patchRes.ok) throw new Error(`Patch env var failed: ${patchRes.status} ${await patchRes.text()}`)
+          } else {
+            const createRes = await fetch(`${baseUrl}?teamId=${teamId}`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ key: 'DATABASE_URL', value: databaseUrl, type: 'encrypted', target: ['preview'], gitBranch })
+            })
+            if (!createRes.ok) throw new Error(`Create env var failed: ${createRes.status} ${await createRes.text()}`)
+          }
+          SCRIPT
 
   cleanup:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
