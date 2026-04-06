@@ -143,6 +143,9 @@
 </template>
 
 <script lang="ts" setup>
+import { computed, type ComputedRef } from 'vue'
+import { definePageMeta } from '#imports'
+
 definePageMeta({
   layout: 'app'
 })
@@ -198,7 +201,7 @@ const users = [
   }
 ]
 
-const stats = computed(() => {
+const stats: ComputedRef<{ label: string, value: number, icon: string }[]> = computed(() => {
   const totalPosts = users.reduce((sum, u) => sum + u.posts.length, 0)
   const publishedPosts = users.reduce((sum, u) => sum + u.posts.filter(p => p.isPublished).length, 0)
 

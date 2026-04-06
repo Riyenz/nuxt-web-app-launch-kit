@@ -83,6 +83,8 @@
 <script lang="ts" setup>
 import type { NavigationMenuItem, DropdownMenuItem } from '@nuxt/ui'
 import { useClerk } from '@clerk/vue'
+import { computed } from 'vue'
+import { definePageMeta, navigateTo, useUser } from '#imports'
 
 const items: NavigationMenuItem[][] = [[{
   label: 'Dashboard',
