@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/vue'
-import { createError, defineNuxtRouteMiddleware } from '#imports'
 
 export default defineNuxtRouteMiddleware(() => {
   const { isSignedIn } = useAuth()

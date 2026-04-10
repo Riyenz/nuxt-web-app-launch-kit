@@ -7,8 +7,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useHead, useSeoMeta } from '#imports'
-
 const title = 'Nuxt Web App Launch Kit'
 const description = 'A production-ready web app launch kit powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
 

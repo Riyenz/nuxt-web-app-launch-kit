@@ -749,7 +749,6 @@
 
 <script lang="ts" setup>
 import { useAuth, useClerk } from '@clerk/vue'
-import { navigateTo } from '#imports'
 
 const { isSignedIn } = useAuth()
 const clerk = useClerk()

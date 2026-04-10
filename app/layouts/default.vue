@@ -89,8 +89,6 @@
 
 <script lang="ts" setup>
 import { useClerk } from '@clerk/vue'
-import { computed } from 'vue'
-import { useRoute } from '#imports'
 
 const clerk = useClerk()
 const route = useRoute()

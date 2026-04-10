@@ -8,7 +8,6 @@ export default defineConfig({
     path: 'prisma/migrations'
   },
   datasource: {
-    // Allow client generation in CI jobs that do not inject a real database URL.
-    url: process.env.DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder'
+    url: process.env.DATABASE_URL || (process.env.CI ? 'postgresql://placeholder:placeholder@localhost:5432/placeholder' : (() => { throw new Error('DATABASE_URL is required') })())
   }
 })

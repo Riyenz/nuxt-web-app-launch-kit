@@ -34,7 +34,7 @@ async function neonFetch(path, apiKey, options = {}) {
       return response
     }
 
-    if (response.status >= 500 && attempt < maxRetries) {
+    if ((response.status === 423 || response.status >= 500) && attempt < maxRetries) {
       await new Promise(resolve => setTimeout(resolve, attempt * 1000))
       continue
     }
@@ -42,14 +42,27 @@ async function neonFetch(path, apiKey, options = {}) {
     const body = await response.text()
     throw new Error(`Neon API ${options.method || 'GET'} ${path} returned ${response.status}: ${body}`)
   }
-
-  throw new Error(`Neon API ${options.method || 'GET'} ${path} failed after ${maxRetries} retries`)
 }
 
 async function listBranches(projectId, apiKey) {
-  const response = await neonFetch(`/projects/${projectId}/branches`, apiKey)
-  const data = await response.json()
-  return data.branches
+  const branches = []
+  let cursor = null
+
+  do {
+    const params = new URLSearchParams()
+
+    if (cursor) {
+      params.set('cursor', cursor)
+    }
+
+    const query = params.size > 0 ? `?${params.toString()}` : ''
+    const response = await neonFetch(`/projects/${projectId}/branches${query}`, apiKey)
+    const data = await response.json()
+    branches.push(...data.branches)
+    cursor = data.pagination?.next ?? null
+  } while (cursor)
+
+  return branches
 }
 
 async function findBranchByName(projectId, apiKey, branchName) {
