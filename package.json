@@ -6,7 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "prisma generate && nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "seed": "pnpm tsx prisma/seed.ts"
@@ -25,7 +25,8 @@
     "@prisma/client": "^7.5.0",
     "dotenv": "^17.2.3",
     "nuxt": "^4.4.2",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "vue-router": "5.0.3"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
