@@ -34,3 +34,6 @@ logs
 # Conductor
 .context
 .vercel
+
+*storybook.log
+storybook-static

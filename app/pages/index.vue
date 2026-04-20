@@ -7,20 +7,19 @@
       <div
         class="
           absolute inset-0
-          [background-image:linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)]
-          [background-size:48px_48px]
-          opacity-35
+          bg-[linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)]
+          bg-size-[48px_48px] opacity-35
         "
       />
       <div
         class="
-          pointer-events-none absolute top-16 -left-24 h-72 w-72 rounded-full
+          pointer-events-none absolute top-16 -left-24 size-72 rounded-full
           bg-lime-300/30 blur-[120px]
         "
       />
       <div
         class="
-          pointer-events-none absolute top-0 right-0 h-72 w-72 rounded-full
+          pointer-events-none absolute top-0 right-0 size-72 rounded-full
           bg-emerald-400/25 blur-[140px]
         "
       />
@@ -112,7 +111,7 @@
 
           <h1
             class="
-              mt-6 text-4xl leading-tight font-semibold
+              mt-6 text-4xl/tight font-semibold
               sm:text-5xl
               lg:text-6xl
             "
@@ -301,7 +300,7 @@
             :key="client.name"
             class="
               flex items-center justify-center gap-2 rounded-2xl border
-              border-slate-200 bg-slate-50 px-4 py-4 text-slate-600
+              border-slate-200 bg-slate-50 p-4 text-slate-600
             "
           >
             <UIcon
@@ -371,7 +370,7 @@
               <h3 class="text-lg font-semibold text-slate-900">
                 {{ feature.title }}
               </h3>
-              <p class="text-sm leading-relaxed text-slate-600">
+              <p class="text-sm/relaxed text-slate-600">
                 {{ feature.description }}
               </p>
             </div>
@@ -388,13 +387,13 @@
     >
       <div
         class="
-          pointer-events-none absolute top-0 left-0 h-72 w-72 rounded-full
+          pointer-events-none absolute top-0 left-0 size-72 rounded-full
           bg-lime-300/20 blur-[120px]
         "
       />
       <div
         class="
-          pointer-events-none absolute right-0 bottom-0 h-72 w-72 rounded-full
+          pointer-events-none absolute right-0 bottom-0 size-72 rounded-full
           bg-emerald-400/15 blur-[120px]
         "
       />
@@ -532,7 +531,7 @@
             :key="item.name"
             class="border-slate-200 bg-slate-50"
           >
-            <p class="text-sm leading-relaxed text-slate-700">
+            <p class="text-sm/relaxed text-slate-700">
               "{{ item.quote }}"
             </p>
             <div class="mt-5 flex items-center justify-between">
@@ -578,13 +577,13 @@
         >
           <div
             class="
-              pointer-events-none absolute top-0 -left-16 h-60 w-60 rounded-full
+              pointer-events-none absolute top-0 -left-16 size-60 rounded-full
               bg-lime-300/20 blur-[100px]
             "
           />
           <div
             class="
-              pointer-events-none absolute -right-16 bottom-0 h-60 w-60
+              pointer-events-none absolute -right-16 bottom-0 size-60
               rounded-full bg-emerald-400/20 blur-[120px]
             "
           />

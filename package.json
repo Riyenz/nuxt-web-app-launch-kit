@@ -9,7 +9,9 @@
     "postinstall": "prisma generate && nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "seed": "pnpm tsx prisma/seed.ts"
+    "seed": "pnpm tsx prisma/seed.ts",
+    "storybook": "STORYBOOK_DISABLE_NUXT_FONTS=1 storybook dev -p 6006",
+    "build-storybook": "STORYBOOK_DISABLE_NUXT_FONTS=1 storybook build"
   },
   "prisma": {
     "seed": "pnpm tsx prisma/seed.ts"
@@ -30,10 +32,14 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
+    "@storybook-vue/nuxt": "9.0.1",
+    "@storybook/addon-docs": "^9.0.5",
     "@types/node": "^25.5.0",
     "eslint": "^9.39.3",
     "eslint-plugin-better-tailwindcss": "^4.3.2",
+    "eslint-plugin-storybook": "^9.0.5",
     "prisma": "^7.5.0",
+    "storybook": "^9.0.5",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.6"

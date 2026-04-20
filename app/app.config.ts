@@ -1,42 +1,51 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'emerald',
-      secondary: 'lime',
+      primary: 'blue',
+      secondary: 'indigo',
       neutral: 'slate'
     },
     button: {
       slots: {
-        base: 'rounded-lg font-semibold transition-all'
+        base: 'rounded-lg font-medium transition-all'
       },
       variants: {
         solid: {
-          base: 'shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/35'
+          base: 'shadow-sm'
         },
         outline: {
-          base: 'border-default/60 bg-white/5 backdrop-blur-sm hover:bg-white/10'
+          base: 'border-default/60 bg-transparent hover:bg-elevated/60'
+        },
+        ghost: {
+          base: 'hover:bg-elevated/80'
         },
         soft: {
-          base: 'bg-primary/15 text-primary ring-1 ring-primary/20 hover:bg-primary/20'
+          base: 'bg-primary/10 text-primary ring-1 ring-primary/20 hover:bg-primary/15'
         }
       }
     },
     badge: {
       slots: {
-        base: 'rounded-lg px-3 py-1 font-medium'
+        base: 'rounded-full px-2 py-0.5 font-medium'
       }
     },
     card: {
       slots: {
-        root: 'rounded-lg border border-default/60 bg-default shadow-md shadow-black/5',
-        header: 'p-5 sm:px-6',
-        body: 'p-5 sm:px-6',
-        footer: 'p-5 sm:px-6'
+        root: 'rounded-xl overflow-hidden',
+        header: 'px-5 py-4 sm:px-6',
+        body: 'px-5 py-4 sm:px-6',
+        footer: 'px-5 py-4 sm:px-6'
       }
     },
     input: {
       slots: {
-        base: 'rounded-lg border-default/60 bg-default/90 shadow-sm'
+        base: 'rounded-xl border-default/40 bg-elevated/50'
+      }
+    },
+    table: {
+      slots: {
+        th: 'px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wide text-left',
+        td: 'px-4 py-3 text-sm text-default whitespace-nowrap'
       }
     }
   }
