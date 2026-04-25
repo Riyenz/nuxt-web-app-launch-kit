@@ -2,7 +2,7 @@
   <div class="">
     <UHeader
       v-if="!isLanding"
-      class="!border-b-0 border-none bg-transparent !backdrop-blur-none"
+      class="border-b-0! border-none bg-transparent backdrop-blur-none!"
       :ui="{
         root: 'bg-transparent border-none shadow-none h-(--ui-header-height) sticky top-0 z-50 !backdrop-blur-none !border-b-0',
         container: 'relative flex items-center justify-between gap-3 h-full'

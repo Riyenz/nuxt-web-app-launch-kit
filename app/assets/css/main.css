@@ -2,24 +2,32 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Outfit', sans-serif;
 }
 
 :root {
-  --ui-radius: 0.875rem;
-  --ui-bg: #f8fafc;
+  --ui-radius: 0.5rem;
+  --ui-bg: #ffffff;
   --ui-bg-muted: #f1f5f9;
-  --ui-bg-elevated: #ffffff;
+  --ui-bg-elevated: #f8fafc;
   --ui-bg-accented: #eef2ff;
   --ui-border: #e2e8f0;
   --ui-text: #0f172a;
   --ui-text-muted: #64748b;
 }
 
+.dark {
+  --ui-bg: #0b1220;
+  --ui-bg-muted: #0f172a;
+  --ui-bg-elevated: #1e293b;
+  --ui-bg-accented: #1e293b;
+  --ui-border: #1e293b;
+  --ui-text: #f8fafc;
+  --ui-text-muted: #94a3b8;
+}
+
 body {
-  background:
-    radial-gradient(circle at top, color-mix(in oklab, var(--color-blue-100) 10%, white) 0%, transparent 45%),
-    linear-gradient(180deg, #f8fafc 0%, #f5f7fb 100%);
+  background: var(--ui-bg-muted);
 }
 
 html {

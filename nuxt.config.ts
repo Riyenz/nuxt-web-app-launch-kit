@@ -20,6 +20,10 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  ui: {
+    fonts: process.env.STORYBOOK_DISABLE_NUXT_FONTS !== '1'
+  },
+
   routeRules: {
     '/': { prerender: false },
     '/app/**': { ssr: false, prerender: false }
