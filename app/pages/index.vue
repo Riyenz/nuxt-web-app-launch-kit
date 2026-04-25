@@ -14,13 +14,13 @@
       <div
         class="
           pointer-events-none absolute top-16 -left-24 size-72 rounded-full
-          bg-lime-300/30 blur-[120px]
+          bg-blue-400/30 blur-[120px]
         "
       />
       <div
         class="
           pointer-events-none absolute top-0 right-0 size-72 rounded-full
-          bg-emerald-400/25 blur-[140px]
+          bg-blue-500/25 blur-[140px]
         "
       />
 
@@ -45,7 +45,7 @@
               <span
                 class="
                   flex size-9 items-center justify-center rounded-lg
-                  bg-emerald-400/20 text-emerald-200
+                  bg-blue-400/20 text-blue-200
                 "
               >
                 <UIcon
@@ -105,7 +105,7 @@
           <UBadge
             variant="outline"
             color="primary"
-            class="border-emerald-300/40 bg-emerald-500/15 text-emerald-100"
+            class="border-blue-300/40 bg-blue-500/15 text-blue-100"
             label="SaaS Boilerplate"
           />
 
@@ -228,7 +228,7 @@
             <p class="mt-2 text-xl font-semibold">
               2,340
             </p>
-            <p class="mt-1 text-xs text-emerald-600">
+            <p class="mt-1 text-xs text-blue-600">
               +12.4% this week
             </p>
           </UCard>
@@ -248,11 +248,11 @@
             </p>
             <div
               class="
-                mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-100
-                px-3 py-1 text-xs font-medium text-emerald-700
+                mt-3 inline-flex items-center gap-2 rounded-lg bg-blue-100 px-3
+                py-1 text-xs font-medium text-blue-700
               "
             >
-              <span class="size-2 rounded-full bg-emerald-500" />
+              <span class="size-2 rounded-full bg-blue-500" />
               Stable release
             </div>
           </UCard>
@@ -359,7 +359,7 @@
               <span
                 class="
                   inline-flex size-11 items-center justify-center rounded-lg
-                  bg-emerald-100 text-emerald-700
+                  bg-blue-100 text-blue-700
                 "
               >
                 <UIcon
@@ -388,13 +388,13 @@
       <div
         class="
           pointer-events-none absolute top-0 left-0 size-72 rounded-full
-          bg-lime-300/20 blur-[120px]
+          bg-blue-400/20 blur-[120px]
         "
       />
       <div
         class="
           pointer-events-none absolute right-0 bottom-0 size-72 rounded-full
-          bg-emerald-400/15 blur-[120px]
+          bg-blue-500/15 blur-[120px]
         "
       />
 
@@ -435,8 +435,7 @@
             v-for="plan in plans"
             :key="plan.name"
             :class="plan.featured ? `
-              border-emerald-300/50 bg-emerald-400/10 shadow-2xl
-              shadow-emerald-950/40
+              border-blue-300/50 bg-blue-400/10 shadow-2xl shadow-blue-950/40
             ` : `border-white/15 bg-white/5`"
           >
             <div class="space-y-6">
@@ -465,7 +464,7 @@
                 >
                   <UIcon
                     name="hugeicons:tick-02"
-                    class="size-4 text-emerald-300"
+                    class="size-4 text-blue-300"
                   />
                   <span>{{ item }}</span>
                 </li>
@@ -578,13 +577,13 @@
           <div
             class="
               pointer-events-none absolute top-0 -left-16 size-60 rounded-full
-              bg-lime-300/20 blur-[100px]
+              bg-blue-400/20 blur-[100px]
             "
           />
           <div
             class="
               pointer-events-none absolute -right-16 bottom-0 size-60
-              rounded-full bg-emerald-400/20 blur-[120px]
+              rounded-full bg-blue-500/20 blur-[120px]
             "
           />
           <div class="relative z-10 mx-auto max-w-2xl">
@@ -666,7 +665,7 @@
               <span
                 class="
                   flex size-10 items-center justify-center rounded-lg
-                  bg-emerald-400/20 text-emerald-200
+                  bg-blue-400/20 text-blue-200
                 "
               >
                 <UIcon
