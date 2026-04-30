@@ -65,9 +65,24 @@ async function findBranchByName(projectId, apiKey, branchName) {
 
 async function createBranch(projectId, apiKey, branchName, parentBranchName) {
   const branches = await listBranches(projectId, apiKey)
-  const parent = branches.find(b => b.name === parentBranchName)
+  let parent = branches.find(b => b.name === parentBranchName)
+
   if (!parent) {
-    throw new Error(`Parent branch "${parentBranchName}" not found in project ${projectId}`)
+    const defaultBranch = branches.find(b => b.default) || branches[0]
+    if (!defaultBranch) {
+      throw new Error(`No branches found in project ${projectId}`)
+    }
+    console.log(`Parent branch "${parentBranchName}" not found. Creating it from "${defaultBranch.name}"...`)
+    const res = await neonFetch(`/projects/${projectId}/branches`, apiKey, {
+      method: 'POST',
+      body: JSON.stringify({
+        branch: { name: parentBranchName, parent_id: defaultBranch.id },
+        endpoints: [{ type: 'read_write' }]
+      })
+    })
+    const data = await res.json()
+    parent = data.branch
+    console.log(`Created parent branch "${parentBranchName}" (${parent.id})`)
   }
 
   const res = await neonFetch(`/projects/${projectId}/branches`, apiKey, {

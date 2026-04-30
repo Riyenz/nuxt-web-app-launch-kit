@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop
+.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop
 
 # Default target
 help: ## Show this help message
@@ -86,6 +86,13 @@ install: ## Install dependencies
 # Cleanup
 clean: ## Clean build artifacts
 	rm -rf .output .nuxt node_modules
+
+# Diagnostics
+doctor: ## Check environment variables and service connectivity
+	node scripts/doctor.mjs
+
+setup-secrets: ## Sync .env CI/CD variables to GitHub Actions secrets (requires gh CLI)
+	./scripts/setup/sync-github-secrets.sh
 
 # Combined commands
 check: lint typecheck ## Run all quality checks

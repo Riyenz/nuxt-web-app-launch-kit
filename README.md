@@ -4,73 +4,109 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 
 ## Features
 
-- **Nuxt 4.2.2** - Latest Nuxt framework with full TypeScript support
-- **Nuxt UI 4.2.1** - Beautiful, accessible UI components built on Tailwind CSS
-- **Clerk Authentication** - Complete auth solution with user management
-- **Prisma ORM** - Type-safe database access with Neon PostgreSQL
-- **pnpm Package Manager** - Fast, efficient package manager
-- **ESLint & TypeScript** - Code quality and type safety enforced
-- **CI/CD Ready** - GitHub Actions workflow included
+- **Nuxt 4** — Latest Nuxt framework with full TypeScript support
+- **Nuxt UI** — Beautiful, accessible UI components built on Tailwind CSS
+- **Clerk** — Complete authentication with user management
+- **Prisma ORM** — Type-safe database access with Neon PostgreSQL
+- **pnpm** — Fast, efficient package manager
+- **ESLint & TypeScript** — Code quality and type safety enforced
+- **GitHub Actions** — CI with lint, typecheck, and per-PR Neon database branches
+- **Vercel** — Preview deployments with isolated databases per PR
 
-## Prerequisites
+---
 
-- [pnpm](https://pnpm.io) v10 or higher
-- [Node.js](https://nodejs.org) v18 or higher (for compatibility)
-- [Clerk Account](https://clerk.com) (free tier available)
+## Getting Started
 
-## Quick Start
+### Prerequisites
 
-### One-Command Setup
+- [Node.js](https://nodejs.org) v18+
+- [pnpm](https://pnpm.io) v10+
+- [Clerk](https://clerk.com) account (free tier)
+- [Neon](https://neon.tech) account (free tier)
 
-```bash
-make init
-```
+### Step 1 — Create service accounts
 
-This single command will:
+You need two accounts before the app can run locally:
 
-1. Create `.env` file from `.env.example` (if it doesn't exist)
-2. Install all dependencies
-3. Generate Prisma Client
-4. Run database migrations
+**Clerk** (authentication)
+1. Go to [dashboard.clerk.com](https://dashboard.clerk.com) and create an application
+2. From **API Keys**, copy your **Publishable key** (`pk_test_...`) and **Secret key** (`sk_test_...`)
 
-**Note**: The setup will pause if `.env` doesn't exist, prompting you to add your Clerk credentials from the [Clerk Dashboard](https://dashboard.clerk.com). After adding your keys, run `make init` again.
+**Neon** (database)
+1. Go to [console.neon.tech](https://console.neon.tech) and create a project
+2. From **Connection Details**, copy the **Connection string** (`postgresql://...`)
 
-### Start Development
-
-```bash
-make dev
-```
-
-Your app will be available at [http://localhost:3000](http://localhost:3000)
-
-### Manual Setup (Alternative)
-
-If you prefer step-by-step setup:
+### Step 2 — Configure environment
 
 ```bash
-# 1. Copy environment file
 cp .env.example .env
-
-# 2. Edit .env with your Clerk credentials
-# Get keys from: https://dashboard.clerk.com
-
-# 3. Install dependencies
-make install
-
-# 4. Generate Prisma Client and run migrations
-make prisma-generate
-make prisma-migrate
-
-# 5. Start development server
-make dev
 ```
+
+Open `.env` and fill in the three required values:
+
+```bash
+# Database
+DATABASE_URL="postgresql://..."        # from Neon → Connection Details
+
+# Authentication
+NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."   # from Clerk → API Keys
+NUXT_CLERK_SECRET_KEY="sk_test_..."               # from Clerk → API Keys
+```
+
+### Step 3 — Verify your setup
+
+```bash
+make doctor
+```
+
+This checks that all required environment variables are set and correctly formatted. Fix any errors it reports before continuing.
+
+### Step 4 — Install and run
+
+```bash
+make init   # installs deps, generates Prisma client, runs migrations
+make dev    # starts dev server at http://localhost:3000
+```
+
+---
+
+## CI/CD Setup (GitHub Actions + Vercel)
+
+The project ships with a GitHub Actions workflow that creates an isolated Neon database branch and Vercel preview deployment for every PR. This is optional for local development but required for the full workflow.
+
+### Required GitHub Actions secrets
+
+Set these at `GitHub → Settings → Secrets and variables → Actions`:
+
+| Secret | Where to get it |
+|---|---|
+| `NEON_PROJECT_ID` | Neon Console → Project → Settings → General |
+| `NEON_API_KEY` | Neon Console → Account → API Keys |
+| `NEON_PARENT_BRANCH` | Name of your base branch (default: `development`) |
+| `VERCEL_ORG_ID` | Vercel → Settings → General → Team ID |
+| `VERCEL_PROJECT_ID` | Vercel → Project → Settings → General → Project ID |
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
+
+### Sync secrets automatically
+
+If you add the Neon and Vercel values to your local `.env`, you can push them all to GitHub in one command:
+
+```bash
+make setup-secrets   # requires gh CLI: https://cli.github.com
+```
+
+### Neon parent branch
+
+The CI workflow forks a new database branch from a shared `development` branch for each PR. The Conductor workspace setup script will auto-create this branch on first run if it doesn't exist.
+
+---
 
 ## Available Commands
 
 ### Development
 
 ```bash
-make dev             # Start development server
+make dev             # Start development server (http://localhost:3000)
 make build           # Build for production
 make preview         # Preview production build
 make install         # Install/update dependencies
@@ -85,157 +121,149 @@ make typecheck       # Run TypeScript type checker
 make check           # Run both lint and typecheck
 ```
 
-**Important**: All code changes must pass `make check` (lint + typecheck) before being committed.
+All code changes must pass `make check` before being committed.
 
 ### Database (Prisma)
 
 ```bash
 make prisma-generate     # Regenerate Prisma Client
-make prisma-migrate      # Create and apply migration (prompts for name)
-make prisma-deploy       # Apply migrations (production)
+make prisma-migrate      # Create and apply a migration (prompts for name)
+make prisma-deploy       # Apply migrations in production
 make prisma-studio       # Open Prisma Studio GUI
-make prisma-reset        # Reset database (dev only - WARNING: deletes all data)
+make prisma-reset        # Reset database (dev only — WARNING: deletes all data)
 ```
 
-### Setup & Utility
+### Setup & Diagnostics
 
 ```bash
-make init            # Complete project setup (use after cloning)
+make init            # Full first-time setup (install + generate + migrate)
+make doctor          # Check environment variables and service connectivity
+make setup-secrets   # Sync CI/CD variables from .env to GitHub Actions secrets
 make clean           # Clean build artifacts
-make help            # Show all available make commands
+make help            # List all available commands
 ```
+
+---
+
+## Environment Variables
+
+### Required (local dev)
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (starts with `pk_`) |
+| `NUXT_CLERK_SECRET_KEY` | Clerk secret key (starts with `sk_`) |
+
+### Optional (Conductor workspace isolation)
+
+| Variable | Default | Description |
+|---|---|---|
+| `NEON_PROJECT_ID` | — | Neon project ID for workspace branching |
+| `NEON_API_KEY` | — | Neon API key for branch management |
+| `NEON_PARENT_BRANCH` | `development` | Branch to fork new workspaces from |
+
+### CI/CD only (set as GitHub Actions secrets, not in .env)
+
+| Variable | Description |
+|---|---|
+| `VERCEL_ORG_ID` | Vercel team/org ID |
+| `VERCEL_PROJECT_ID` | Vercel project ID |
+| `VERCEL_TOKEN` | Vercel token with env-variable permissions |
+
+---
 
 ## Project Structure
 
 ```
 .
-├── app/                   # Application source code
+├── app/
 │   ├── components/        # Vue components
-│   ├── layouts/          # Layout components
-│   ├── pages/            # Page components (auto-routed)
-│   └── middleware/       # Route middleware
-├── prisma/               # Database schema and migrations
-│   ├── schema.prisma     # Database schema
-│   └── migrations/       # Migration history
-├── lib/                  # Shared utilities
-│   └── prisma.ts         # Prisma client singleton
-├── docs/                 # Detailed documentation
-├── nuxt.config.ts        # Nuxt configuration
-└── package.json          # Dependencies and scripts
+│   ├── layouts/           # Layout components
+│   ├── lib/               # Shared utilities (Prisma singleton)
+│   ├── middleware/        # Route middleware
+│   └── pages/             # Page components (auto-routed)
+├── docs/                  # Detailed documentation
+├── prisma/
+│   ├── migrations/        # Migration history
+│   └── schema.prisma      # Database schema
+├── scripts/
+│   ├── ci/                # GitHub Actions scripts
+│   ├── conductor/         # Conductor workspace scripts
+│   └── setup/             # One-time setup helpers
+├── server/
+│   ├── api/               # API route handlers
+│   └── plugins/           # Server startup plugins (env validation)
+├── .github/workflows/     # CI/CD workflows
+├── conductor.json          # Conductor workspace configuration
+├── Makefile               # Developer commands
+└── nuxt.config.ts         # Nuxt configuration
 ```
+
+---
 
 ## Tech Stack
 
-| Technology   | Version | Purpose                          |
-| ------------ | ------- | -------------------------------- |
-| Nuxt         | 4.2.2   | Vue.js framework                 |
-| Nuxt UI      | 4.2.1   | UI component library             |
-| Clerk        | 1.13.7+ | Authentication & user management |
-| Prisma       | 7.1.0   | Database ORM                     |
-| TypeScript   | 5.9.3   | Type safety                      |
-| Tailwind CSS | -       | Utility-first CSS (via Nuxt UI)  |
-| ESLint       | 9.39.2  | Code linting                     |
-| pnpm         | 10.6.0+ | Package manager                  |
+| Technology | Version | Purpose |
+|---|---|---|
+| Nuxt | 4.2.2 | Vue.js framework |
+| Nuxt UI | 4.2.1 | UI component library |
+| Clerk | 1.13.7+ | Authentication & user management |
+| Prisma | 7.1.0 | Database ORM |
+| TypeScript | 5.9.3 | Type safety |
+| Tailwind CSS | — | Utility-first CSS (via Nuxt UI) |
+| ESLint | 9.39.2 | Code linting |
+| pnpm | 10.6.0+ | Package manager |
+
+---
 
 ## Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
+| Doc | When to read |
+|---|---|
+| [Environment Setup](docs/environment-setup.md) | Detailed env var instructions |
+| [Commands Reference](docs/commands-reference.md) | All available commands |
+| [Prisma Workflow](docs/prisma-workflow.md) | Database schema and migrations |
+| [Project Architecture](docs/project-architecture.md) | File organization |
+| [Naming Conventions](docs/naming-conventions.md) | Code style guidelines |
+| [Neon Database Branching](docs/neon-database-branching.md) | Per-workspace and per-PR databases |
+| [CI/CD](docs/ci-cd.md) | GitHub Actions workflows |
+| [Agent Workflow](docs/agent-workflow.md) | AI-assisted development workflow |
 
-- **[Developer Workflow](docs/developer-workflow.md)** - Complete setup guide from install to running the app
-- **[Tech Stack](docs/tech-stack.md)** - Technology choices and when to use each
-- **[Commands Reference](docs/commands-reference.md)** - All available commands and workflows
-- **[Prisma Workflow](docs/prisma-workflow.md)** - Database schema, migrations, and best practices
-- **[Project Architecture](docs/project-architecture.md)** - File organization and structure
-- **[Naming Conventions](docs/naming-conventions.md)** - Code style and naming guidelines
-- **[Environment Setup](docs/environment-setup.md)** - Environment variables and configuration
-- **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
-- **[CI/CD](docs/ci-cd.md)** - Continuous integration and deployment
-- **[Agent Workflow](docs/agent-workflow.md)** - Development workflow for AI-assisted coding
-
-## Code Quality Standards
-
-This project enforces strict code quality standards:
-
-1. **Boolean Naming**: Always use `is` prefix (never `has`)
-2. **TypeScript**: All code must be type-safe
-3. **ESLint**: Code must pass linting checks
-4. **Brace Style**: Follow established conventions (see [Naming Conventions](docs/naming-conventions.md))
-5. **Database Access**: Always use the Prisma singleton from `~/lib/prisma`
-
-## Common Workflows
-
-### After Cloning the Repository
-
-```bash
-# Run the initialization command
-make init
-
-# Edit .env with your Clerk credentials if needed
-# Get keys from: https://dashboard.clerk.com
-
-# Start development server
-make dev
-```
-
-### Before Committing Code
-
-```bash
-make check
-```
-
-### After Updating Database Schema
-
-```bash
-make prisma-generate     # Regenerate Prisma Client
-make prisma-migrate      # Create and apply migration (will prompt for name)
-```
-
-## Environment Variables
-
-| Variable                            | Required | Description                       |
-| ----------------------------------- | -------- | --------------------------------- |
-| `DATABASE_URL`                      | Yes      | Neon PostgreSQL connection string  |
-| `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk publishable key (public)    |
-| `NUXT_CLERK_SECRET_KEY`             | Yes      | Clerk secret key (private)        |
+---
 
 ## Troubleshooting
 
-### Database Issues
+### App won't start
+
+Run `make doctor` — it will identify missing or malformed environment variables with links to fix them.
+
+### Database issues
 
 ```bash
-# Regenerate Prisma Client
-make prisma-generate
-
-# Reset database (dev only - WARNING: deletes all data)
-make prisma-reset
+make prisma-generate   # Regenerate Prisma Client after schema changes
+make prisma-reset      # Reset database (dev only — WARNING: deletes all data)
 ```
 
-### Authentication Issues
+### Authentication issues
 
-- Verify Clerk keys in `.env` match your Clerk dashboard
-- Ensure `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` starts with `pk_`
-- Ensure `NUXT_CLERK_SECRET_KEY` starts with `sk_`
+- Verify both Clerk keys are set and match your Clerk application
+- `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` must start with `pk_`
+- `NUXT_CLERK_SECRET_KEY` must start with `sk_`
 
-### Type Errors
+### CI failures
 
-```bash
-# Run type checker
-make typecheck
+- Run `make check` locally before pushing — CI runs the same lint and typecheck
+- See [CI/CD docs](docs/ci-cd.md) for troubleshooting specific failures
 
-# Rebuild Prisma types and recheck
-make prisma-generate
-make typecheck
-```
+---
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run code quality checks (`make check`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes and run `make check`
+4. Commit and open a pull request
 
 ## License
 
