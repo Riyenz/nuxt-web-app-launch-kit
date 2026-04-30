@@ -9,16 +9,24 @@ const YELLOW = '\x1b[33m'
 const RESET = '\x1b[0m'
 const BOLD = '\x1b[1m'
 
+function printStatus(color, symbol, label, hint) {
+  console.log(`  ${color}${symbol}${RESET} ${label}${hint ? `\n    → ${hint}` : ''}`)
+}
+
 function pass(label) {
-  console.log(`  ${GREEN}✓${RESET} ${label}`)
+  printStatus(GREEN, '✓', label)
 }
 
 function fail(label, hint) {
-  console.log(`  ${RED}✗${RESET} ${label}${hint ? `\n    → ${hint}` : ''}`)
+  printStatus(RED, '✗', label, hint)
 }
 
 function warn(label, hint) {
-  console.log(`  ${YELLOW}~${RESET} ${label}${hint ? `\n    → ${hint}` : ''}`)
+  printStatus(YELLOW, '~', label, hint)
+}
+
+function clerkEnv(key) {
+  return key.includes('_live_') ? 'production' : 'development'
 }
 
 function loadEnv(filePath) {
@@ -63,37 +71,41 @@ async function main() {
 
   console.log(`\n${BOLD}Required (local dev)${RESET}`)
 
-  const dbUrl = env.DATABASE_URL
-  if (!dbUrl) {
-    fail('DATABASE_URL not set', 'Get from console.neon.tech → Project → Connection Details')
-    isHealthy = false
-  } else if (!dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('postgres://')) {
-    fail('DATABASE_URL invalid format', 'Must start with postgresql://')
-    isHealthy = false
-  } else {
-    pass('DATABASE_URL')
-  }
+  const requiredChecks = [
+    {
+      key: 'DATABASE_URL',
+      hint: 'Get from console.neon.tech → Project → Connection Details',
+      validate: v => v.startsWith('postgresql://') || v.startsWith('postgres://'),
+      validationHint: 'Must start with postgresql://',
+      label: () => 'DATABASE_URL'
+    },
+    {
+      key: 'NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+      hint: 'Get from dashboard.clerk.com → API Keys',
+      validate: v => v.startsWith('pk_'),
+      validationHint: 'Must start with pk_',
+      label: v => `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY (${clerkEnv(v)})`
+    },
+    {
+      key: 'NUXT_CLERK_SECRET_KEY',
+      hint: 'Get from dashboard.clerk.com → API Keys',
+      validate: v => v.startsWith('sk_'),
+      validationHint: 'Must start with sk_',
+      label: v => `NUXT_CLERK_SECRET_KEY (${clerkEnv(v)})`
+    }
+  ]
 
-  const clerkPub = env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  if (!clerkPub) {
-    fail('NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY not set', 'Get from dashboard.clerk.com → API Keys')
-    isHealthy = false
-  } else if (!clerkPub.startsWith('pk_')) {
-    fail('NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY invalid format', 'Must start with pk_')
-    isHealthy = false
-  } else {
-    pass(`NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY (${clerkPub.startsWith('pk_live_') ? 'production' : 'development'})`)
-  }
-
-  const clerkSecret = env.NUXT_CLERK_SECRET_KEY
-  if (!clerkSecret) {
-    fail('NUXT_CLERK_SECRET_KEY not set', 'Get from dashboard.clerk.com → API Keys')
-    isHealthy = false
-  } else if (!clerkSecret.startsWith('sk_')) {
-    fail('NUXT_CLERK_SECRET_KEY invalid format', 'Must start with sk_')
-    isHealthy = false
-  } else {
-    pass(`NUXT_CLERK_SECRET_KEY (${clerkSecret.startsWith('sk_live_') ? 'production' : 'development'})`)
+  for (const { key, hint, validate, validationHint, label } of requiredChecks) {
+    const value = env[key]
+    if (!value) {
+      fail(`${key} not set`, hint)
+      isHealthy = false
+    } else if (!validate(value)) {
+      fail(`${key} invalid format`, validationHint)
+      isHealthy = false
+    } else {
+      pass(label(value))
+    }
   }
 
   console.log(`\n${BOLD}Optional (Conductor workspace isolation + CI/CD)${RESET}`)
@@ -118,8 +130,7 @@ async function main() {
       console.log(` ${GREEN}✓${RESET}`)
     } else {
       console.log(` ${RED}✗${RESET}`)
-      fail('Neon API unreachable or invalid credentials', 'Verify NEON_PROJECT_ID and NEON_API_KEY at console.neon.tech')
-      isHealthy = false
+      warn('Neon API unreachable or invalid credentials', 'Verify NEON_PROJECT_ID and NEON_API_KEY at console.neon.tech')
     }
   }
 

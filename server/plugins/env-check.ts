@@ -46,8 +46,5 @@ export default defineNitroPlugin(() => {
   ]
 
   console.error(lines.join('\n'))
-
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1)
-  }
+  process.exit(1)
 })

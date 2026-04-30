@@ -73,15 +73,15 @@ async function createBranch(projectId, apiKey, branchName, parentBranchName) {
       throw new Error(`No branches found in project ${projectId}`)
     }
     console.log(`Parent branch "${parentBranchName}" not found. Creating it from "${defaultBranch.name}"...`)
-    const createRes = await neonFetch(`/projects/${projectId}/branches`, apiKey, {
+    const res = await neonFetch(`/projects/${projectId}/branches`, apiKey, {
       method: 'POST',
       body: JSON.stringify({
         branch: { name: parentBranchName, parent_id: defaultBranch.id },
         endpoints: [{ type: 'read_write' }]
       })
     })
-    const createData = await createRes.json()
-    parent = createData.branch
+    const data = await res.json()
+    parent = data.branch
     console.log(`Created parent branch "${parentBranchName}" (${parent.id})`)
   }
 
