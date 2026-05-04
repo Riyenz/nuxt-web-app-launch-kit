@@ -48,3 +48,25 @@ pnpm run dev
 3. **Boolean Naming**: Always use `is` prefix (never `has`)
 4. **Database Access**: Always import `prisma from '~/lib/prisma'` (singleton pattern)
 5. **Prisma Client**: Regenerate with `pnpm exec prisma generate` after schema changes
+
+## Browser Testing
+
+Use **playwright-cli** (not agent-browser) for all browser automation and testing tasks.
+
+**Always record video evidence when testing:**
+
+```bash
+playwright-cli open https://localhost:3000
+playwright-cli video-start video.webm
+# ... perform test steps ...
+playwright-cli video-stop
+playwright-cli close
+```
+
+**Clerk test accounts:**
+
+| Email | Password |
+|-------|----------|
+| admin+clerk_test@avit.dev | !taXfov-8sipgo-qeqrap |
+
+Skill reference: `/Users/ivanotiong/.claude/skills/playwright-cli/SKILL.md`
