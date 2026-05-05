@@ -3,7 +3,7 @@ name: pr-neon-branch
 on:
   pull_request:
     branches:
-      - master
+      - develop
     types:
       - opened
       - reopened
