@@ -35,5 +35,8 @@ logs
 .context
 .vercel
 
+# Superset
+.superset/config.local.json
+
 *storybook.log
 storybook-static
