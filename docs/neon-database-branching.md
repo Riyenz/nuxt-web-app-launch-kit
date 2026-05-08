@@ -11,7 +11,7 @@ There are two independent systems:
 | System | Trigger | Branch naming | Script |
 |---|---|---|---|
 | Conductor workspaces | Workspace setup/archive | `cw-<workspace-slug>` | `scripts/conductor/neon-workspace-db.mjs` |
-| GitHub Actions | PR opened/closed against `master` | `pr-<number>` | `scripts/ci/neon-pr-branch.mjs` |
+| GitHub Actions | PR opened/closed against `develop` | `pr-<number>` | `scripts/ci/neon-pr-branch.mjs` |
 
 ## How It Works
 
@@ -29,7 +29,7 @@ When the workspace is archived, the Neon branch is deleted.
 
 ### CI PR Branches
 
-The GitHub Actions workflow at `.github/workflows/pr-neon-branch.yml` runs on PRs targeting `master`:
+The GitHub Actions workflow at `.github/workflows/pr-neon-branch.yml` runs on PRs targeting `develop`:
 
 1. On open/reopen/sync, it creates or reuses a Neon branch `pr-<number>`
 2. It runs `prisma migrate deploy` against that branch
@@ -57,6 +57,8 @@ Set these in GitHub at `Settings -> Secrets and variables -> Actions`:
 | `NEON_PROJECT_ID` | Neon project ID |
 | `NEON_API_KEY` | Neon API key for branch management |
 | `NEON_PARENT_BRANCH` | Optional parent branch to fork from; defaults to `development` |
+| `DEV_DATABASE_URL` | Develop branch database connection string for migration deploys |
+| `PROD_DATABASE_URL` | Production database connection string for migration deploys |
 | `VERCEL_ORG_ID` | Vercel team/org ID |
 | `VERCEL_PROJECT_ID` | Vercel project ID |
 | `VERCEL_TOKEN` | Vercel token with environment-variable permissions |
@@ -65,5 +67,6 @@ Set these in GitHub at `Settings -> Secrets and variables -> Actions`:
 
 - The shared Neon parent branch must already exist and have the expected schema baseline.
 - `prisma migrate deploy` is used in CI so previews stay aligned with committed migrations.
+- Pushes to `develop` and `master` run `.github/workflows/db-migrate.yml` against `DEV_DATABASE_URL` and `PROD_DATABASE_URL`.
 - Vercel preview env vars are keyed by the PR head branch name, not the PR number.
 - Stale Neon branches can still accumulate if a workflow is interrupted; clean up orphaned `pr-*` branches in Neon periodically.

@@ -72,7 +72,7 @@ make dev    # starts dev server at http://localhost:3000
 
 ## CI/CD Setup (GitHub Actions + Vercel)
 
-The project ships with a GitHub Actions workflow that creates an isolated Neon database branch and Vercel preview deployment for every PR. This is optional for local development but required for the full workflow.
+The project ships with GitHub Actions workflows that run quality checks, apply database migrations on `develop` and `master`, and create an isolated Neon database branch plus Vercel preview deployment for every PR targeting `develop`. This is optional for local development but required for the full workflow.
 
 ### Required GitHub Actions secrets
 
@@ -83,6 +83,8 @@ Set these at `GitHub → Settings → Secrets and variables → Actions`:
 | `NEON_PROJECT_ID` | Neon Console → Project → Settings → General |
 | `NEON_API_KEY` | Neon Console → Account → API Keys |
 | `NEON_PARENT_BRANCH` | Name of your base branch (default: `development`) |
+| `DEV_DATABASE_URL` | Neon connection string for the develop database |
+| `PROD_DATABASE_URL` | Neon connection string for the production database |
 | `VERCEL_ORG_ID` | Vercel → Settings → General → Team ID |
 | `VERCEL_PROJECT_ID` | Vercel → Project → Settings → General → Project ID |
 | `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
@@ -97,7 +99,7 @@ make setup-secrets   # requires gh CLI: https://cli.github.com
 
 ### Neon parent branch
 
-The CI workflow forks a new database branch from a shared `development` branch for each PR. The Conductor workspace setup script will auto-create this branch on first run if it doesn't exist.
+The PR workflow forks a new database branch from a shared `development` branch for each PR into `develop`. The Conductor workspace setup script will auto-create this branch on first run if it doesn't exist.
 
 ---
 
@@ -167,6 +169,8 @@ make help            # List all available commands
 
 | Variable | Description |
 |---|---|
+| `DEV_DATABASE_URL` | Develop database connection string for migration deploys |
+| `PROD_DATABASE_URL` | Production database connection string for migration deploys |
 | `VERCEL_ORG_ID` | Vercel team/org ID |
 | `VERCEL_PROJECT_ID` | Vercel project ID |
 | `VERCEL_TOKEN` | Vercel token with env-variable permissions |
