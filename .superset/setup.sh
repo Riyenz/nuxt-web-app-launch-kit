@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export CONDUCTOR_ROOT_PATH="${CONDUCTOR_ROOT_PATH:-${SUPERSET_ROOT_PATH:-}}"
-export CONDUCTOR_WORKSPACE_NAME="${CONDUCTOR_WORKSPACE_NAME:-${SUPERSET_WORKSPACE_NAME:-$(basename "$PWD")}}"
+echo "=== Superset Workspace Setup ==="
 
-./scripts/conductor/setup.sh
+if [ -n "${SUPERSET_ROOT_PATH:-}" ] && [ -f "$SUPERSET_ROOT_PATH/.env" ]; then
+  echo "Copying root .env..."
+  cp "$SUPERSET_ROOT_PATH/.env" .env
+fi
+
+echo "Setting up Neon workspace branch..."
+node ./.superset/neon-workspace-db.mjs setup
+
+echo "Running project setup..."
+make setup
+
+echo "Running database migrations..."
+pnpm exec prisma migrate dev
+
+echo "=== Setup complete ==="
