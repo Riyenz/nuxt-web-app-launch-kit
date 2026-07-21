@@ -1,31 +1,33 @@
-# Neon Database Branching
+# Per-Environment Databases
 
-**Read this when**: You need to understand how per-workspace and per-PR database branches work, or you need to set up the required secrets.
+**Read this when**: You need to understand how each worktree and each pull request gets its own database, or you need to set up the required secrets.
 
 ## Overview
 
-This project uses [Neon](https://neon.tech) database branching to give each developer workspace and each pull request its own isolated database. All branches are forked from a shared parent branch (default: `development`), so they start with the same schema and seed data.
+Every isolated environment gets its own database, but they come from two different places:
 
-There are two independent systems:
-
-| System | Trigger | Branch naming | Script |
+| System | Trigger | Database | Script |
 |---|---|---|---|
-| Conductor workspaces | Workspace setup/archive | `cw-<workspace-slug>` | `scripts/conductor/neon-workspace-db.mjs` |
-| GitHub Actions | PR opened/closed against `develop` | `pr-<number>` | `scripts/ci/neon-pr-branch.mjs` |
+| Paseo worktrees | Worktree setup/teardown | Local PGlite server `pw-<worktree-slug>` | `.paseo/local-db.mjs` |
+| GitHub Actions | PR opened/closed against `develop` | Neon branch `pr-<number>` | `scripts/ci/neon-pr-branch.mjs` |
+
+**Local development does not use Neon.** Worktrees and your main checkout run a local PGlite Postgres; Neon is only involved in CI preview databases and deployed environments.
 
 ## How It Works
 
-### Conductor Workspace Branches
+### Paseo Worktrees (local PGlite, no Neon)
 
-When a Conductor workspace is created, `conductor.json` runs the setup script:
+`paseo.json` points Paseo at `.paseo/setup.sh`, which:
 
-1. Copies the root `.env` into the workspace if `CONDUCTOR_ROOT_PATH` is set
-2. Creates a Neon branch named `cw-<workspace-name>` forked from the parent branch
-3. Writes the new `DATABASE_URL` into the workspace `.env`
-4. Saves branch metadata to `.context/neon-workspace.json`
-5. Runs `make setup` and `prisma migrate dev`
+1. Recreates `.env` — copied from the source checkout if it has one, otherwise from `.env.example` (Paseo starts each worktree without gitignored files)
+2. Runs `pnpm install`
+3. Calls `.paseo/local-db.mjs setup`, which starts a detached `prisma dev` server named `pw-<worktree-slug>` — PGlite, Postgres compiled to WASM, so enums, `Json`, `Decimal`, and advisory locks behave like Neon
+4. Rewrites `DATABASE_URL`, `DIRECT_URL`, and `SHADOW_DATABASE_URL` in `.env` to point at that server
+5. Applies `prisma migrate deploy` and seeds the database
 
-When the workspace is archived, the Neon branch is deleted.
+The script deliberately doesn't pin ports — a fixed port would collide with the next worktree — so `prisma dev` allocates its own and the script reads the real connection strings back out of `prisma dev ls`, rewriting `.env` on every run. Re-running `node ./.paseo/local-db.mjs setup` is safe, and is the recovery path when the server isn't running after a reboot.
+
+Teardown (`.paseo/teardown.sh`) removes the server and its storage.
 
 ### CI PR Branches
 
@@ -40,13 +42,7 @@ Fork PRs are skipped because repository secrets are not exposed to them.
 
 ## Required Configuration
 
-### Local / Conductor `.env`
-
-```bash
-NEON_PROJECT_ID=<your-neon-project-id>
-NEON_API_KEY=<your-neon-api-key>
-NEON_PARENT_BRANCH=development
-```
+Local development needs no Neon configuration at all — PGlite ships with Prisma.
 
 ### GitHub Actions Secrets
 
@@ -65,7 +61,7 @@ Set these in GitHub at `Settings -> Secrets and variables -> Actions`:
 
 ## Operational Notes
 
-- The shared Neon parent branch must already exist and have the expected schema baseline.
+- The shared Neon parent branch must already exist and have the expected schema baseline. Nothing creates it automatically now that worktrees are local-only.
 - `prisma migrate deploy` is used in CI so previews stay aligned with committed migrations.
 - Pushes to `develop` and `master` run `.github/workflows/db-migrate.yml` against `DEV_DATABASE_URL` and `PROD_DATABASE_URL`.
 - Vercel preview env vars are keyed by the PR head branch name, not the PR number.
