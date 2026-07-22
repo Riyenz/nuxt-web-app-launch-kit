@@ -7,7 +7,7 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - **Nuxt 4** — Latest Nuxt framework with full TypeScript support
 - **Nuxt UI** — Beautiful, accessible UI components built on Tailwind CSS
 - **Clerk** — Complete authentication with user management
-- **Prisma ORM** — Type-safe database access with Neon PostgreSQL
+- **Prisma ORM** — Type-safe database access, local PGlite Postgres, Neon in production
 - **pnpm** — Fast, efficient package manager
 - **ESLint & TypeScript** — Code quality and type safety enforced
 - **GitHub Actions** — CI with lint, typecheck, and per-PR Neon database branches
@@ -22,19 +22,15 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - [Node.js](https://nodejs.org) v18+
 - [pnpm](https://pnpm.io) v10+
 - [Clerk](https://clerk.com) account (free tier)
-- [Neon](https://neon.tech) account (free tier)
 
-### Step 1 — Create service accounts
+No database account is needed to run locally — the database runs on your machine.
+A [Neon](https://neon.tech) account is only required for deployed environments and
+CI preview databases.
 
-You need two accounts before the app can run locally:
+### Step 1 — Create a Clerk application
 
-**Clerk** (authentication)
 1. Go to [dashboard.clerk.com](https://dashboard.clerk.com) and create an application
 2. From **API Keys**, copy your **Publishable key** (`pk_test_...`) and **Secret key** (`sk_test_...`)
-
-**Neon** (database)
-1. Go to [console.neon.tech](https://console.neon.tech) and create a project
-2. From **Connection Details**, copy the **Connection string** (`postgresql://...`)
 
 ### Step 2 — Configure environment
 
@@ -42,31 +38,55 @@ You need two accounts before the app can run locally:
 cp .env.example .env
 ```
 
-Open `.env` and fill in the three required values:
+Open `.env` and fill in the two required values:
 
 ```bash
-# Database
-DATABASE_URL="postgresql://..."        # from Neon → Connection Details
-
-# Authentication
 NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."   # from Clerk → API Keys
 NUXT_CLERK_SECRET_KEY="sk_test_..."               # from Clerk → API Keys
 ```
 
-### Step 3 — Verify your setup
+Leave `DATABASE_URL` blank — the local database supplies its own.
+
+### Step 3 — Install
 
 ```bash
-make doctor
+make init   # installs deps and generates the Prisma client
 ```
 
-This checks that all required environment variables are set and correctly formatted. Fix any errors it reports before continuing.
+### Step 4 — Start the local database
 
-### Step 4 — Install and run
+Prisma 7 bundles [PGlite](https://pglite.dev), a real Postgres compiled to WASM, so
+there's no Docker and no cloud account. Leave this running in its own terminal:
 
 ```bash
-make init   # installs deps, generates Prisma client, runs migrations
-make dev    # starts dev server at http://localhost:3000
+make db-local
 ```
+
+Then, in a second terminal, initialize it once:
+
+```bash
+make db-local-setup   # migrations, Prisma client, seed data
+```
+
+### Step 5 — Run
+
+```bash
+make dev-local   # dev server at http://localhost:3000, pointed at the local DB
+make doctor      # optional: verify env vars and service connectivity
+```
+
+`make dev-local` injects the local `DATABASE_URL` per command, so `.env` stays
+untouched — use plain `make dev` when you want the app to use the `DATABASE_URL`
+in `.env` instead. `app/lib/db-adapter.ts` picks the node-postgres adapter for
+local Postgres and the Neon adapter for `*.neon.tech` URLs, so deployed
+environments are unaffected.
+
+### Paseo worktrees
+
+Every [Paseo](https://paseo.sh) worktree provisions its own isolated PGlite server
+named `pw-<worktree>`, migrated and seeded, with `.env` pointed at it — so plain
+`make dev` works with nothing to set up. See
+[Per-Environment Databases](docs/neon-database-branching.md).
 
 ---
 
@@ -97,9 +117,19 @@ If you add the Neon and Vercel values to your local `.env`, you can push them al
 make setup-secrets   # requires gh CLI: https://cli.github.com
 ```
 
+### Required Vercel environment variables
+
+Set these at `Vercel → Project → Settings → Environment Variables`:
+
+| Variable | Environments | Why |
+|---|---|---|
+| `DATABASE_URL` | Production, Preview | `vercel.json` runs `prisma generate` before `nuxt build`, and `prisma.config.ts` resolves `DATABASE_URL` eagerly — a build with none set fails with `PrismaConfigEnvError`. The PR workflow adds a per-branch Preview override on top of this baseline. |
+| `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Production, Preview | Required at runtime by Clerk |
+| `NUXT_CLERK_SECRET_KEY` | Production, Preview | Required at runtime by Clerk |
+
 ### Neon parent branch
 
-The PR workflow forks a new database branch from a shared `development` branch for each PR into `develop`. The Conductor workspace setup script will auto-create this branch on first run if it doesn't exist.
+The PR workflow forks a new database branch from a shared `development` branch for each PR into `develop`. Create that branch in the Neon console before the first PR runs — local development no longer touches Neon, so nothing creates it automatically.
 
 ---
 
@@ -135,10 +165,19 @@ make prisma-studio       # Open Prisma Studio GUI
 make prisma-reset        # Reset database (dev only — WARNING: deletes all data)
 ```
 
+### Local Database (PGlite)
+
+```bash
+make db-local            # Start the local PGlite server (keep this terminal running)
+make db-local-setup      # Apply migrations, generate the client, and seed (first run)
+make dev-local           # Start the dev server against the local database
+make db-local-studio     # Open Prisma Studio against the local database
+```
+
 ### Setup & Diagnostics
 
 ```bash
-make init            # Full first-time setup (install + generate + migrate)
+make init            # First-time setup (install deps + generate Prisma client)
 make doctor          # Check environment variables and service connectivity
 make setup-secrets   # Sync CI/CD variables from .env to GitHub Actions secrets
 make clean           # Clean build artifacts
@@ -153,17 +192,18 @@ make help            # List all available commands
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | Neon PostgreSQL connection string |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (starts with `pk_`) |
 | `NUXT_CLERK_SECRET_KEY` | Clerk secret key (starts with `sk_`) |
+| `DATABASE_URL` | Postgres connection string. Blank for local dev — PGlite supplies its own |
+| `DIRECT_URL` | Unpooled endpoint for Prisma Migrate; only needed with Neon's `-pooler` host |
 
-### Optional (Conductor workspace isolation)
+### Optional (CI/CD PR preview databases)
 
 | Variable | Default | Description |
 |---|---|---|
-| `NEON_PROJECT_ID` | — | Neon project ID for workspace branching |
+| `NEON_PROJECT_ID` | — | Neon project ID for PR branching |
 | `NEON_API_KEY` | — | Neon API key for branch management |
-| `NEON_PARENT_BRANCH` | `development` | Branch to fork new workspaces from |
+| `NEON_PARENT_BRANCH` | `development` | Branch to fork PR databases from |
 
 ### CI/CD only (set as GitHub Actions secrets, not in .env)
 
@@ -193,13 +233,14 @@ make help            # List all available commands
 │   └── schema.prisma      # Database schema
 ├── scripts/
 │   ├── ci/                # GitHub Actions scripts
-│   ├── conductor/         # Conductor workspace scripts
-│   └── setup/             # One-time setup helpers
+│   ├── setup/             # One-time setup helpers
+│   └── pglite.mjs         # Local PGlite Postgres server + exec wrapper
 ├── server/
 │   ├── api/               # API route handlers
 │   └── plugins/           # Server startup plugins (env validation)
 ├── .github/workflows/     # CI/CD workflows
-├── conductor.json          # Conductor workspace configuration
+├── .paseo/                # Paseo worktree setup/teardown + per-worktree database
+├── paseo.json             # Paseo worktree configuration
 ├── Makefile               # Developer commands
 └── nuxt.config.ts         # Nuxt configuration
 ```

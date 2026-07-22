@@ -8,8 +8,11 @@ Before setting up, ensure you have:
 
 - **Node.js v18+** — Install from [nodejs.org](https://nodejs.org)
 - **pnpm v10+** — Install via `npm install -g pnpm` or [Corepack](https://pnpm.io/installation#using-corepack): `corepack enable && corepack prepare pnpm@latest --activate`
-- **A Neon account** — Sign up free at [neon.tech](https://neon.tech)
 - **A Clerk account** — Sign up free at [clerk.com](https://clerk.com)
+
+No database account is needed for local development — Prisma's bundled PGlite
+server provides Postgres locally. A [Neon](https://neon.tech) account is only
+required for deployed environments and CI preview databases.
 
 ## Environment Variables
 
@@ -21,7 +24,15 @@ cp .env.example .env
 
 ### 1. Database — `DATABASE_URL`
 
-This project uses **Neon PostgreSQL** as its database.
+**For local development, leave this blank.** `make db-local` runs a local PGlite
+Postgres and injects its own connection string into every command, so `.env`
+never needs a database URL. In a Paseo worktree, `.paseo/setup.sh` writes the
+worktree's own `DATABASE_URL`, `DIRECT_URL`, and `SHADOW_DATABASE_URL` for you —
+re-run `node ./.paseo/local-db.mjs setup` if the server isn't running (after a
+reboot, say), since its ports change between runs.
+
+Set `DATABASE_URL` only when you want to point the app at **Neon PostgreSQL** (or
+any other Postgres) instead:
 
 ```bash
 DATABASE_URL="postgresql://<user>:<password>@<host>/<database>?sslmode=require"
@@ -69,7 +80,7 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 
 | Variable | Required | Starts with | Where to get |
 | --- | --- | --- | --- |
-| `DATABASE_URL` | Yes | `postgresql://` | [Neon Console](https://console.neon.tech) → Project → Connection Details |
+| `DATABASE_URL` | Only for non-local databases | `postgresql://` | [Neon Console](https://console.neon.tech) → Project → Connection Details |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | `pk_test_` or `pk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
 | `NUXT_CLERK_SECRET_KEY` | Yes | `sk_test_` or `sk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
 
@@ -84,34 +95,37 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 2. **Set up environment variables** (follow the instructions above):
    ```bash
    cp .env.example .env
-   # Edit .env with your Neon DATABASE_URL and Clerk keys
+   # Edit .env with your Clerk keys
    ```
 
-3. **Install dependencies**:
+3. **Install dependencies and generate the Prisma client**:
    ```bash
-   pnpm install
+   make init
    ```
 
-4. **Initialize database**:
+4. **Start the local database** and leave this terminal running:
    ```bash
-   pnpm exec prisma generate
-   pnpm exec prisma migrate dev
+   make db-local
    ```
 
-5. **Start development server**:
+5. **Initialize the database** in a second terminal (first run only):
    ```bash
-   pnpm run dev
+   make db-local-setup
+   ```
+
+6. **Start development server**:
+   ```bash
+   make dev-local
    ```
 
 The app will be available at [http://localhost:3000](http://localhost:3000).
 
-### One-Command Alternative
+### In a Paseo worktree
 
-If you've already configured your `.env` file, you can run everything with:
+Steps 2-5 already ran during worktree setup, so start with:
 
 ```bash
-make init    # installs deps, generates Prisma client, runs migrations
-make dev     # starts the dev server
+make dev     # the worktree's .env already points at its own database
 ```
 
 ## Environment Variable Best Practices
@@ -124,8 +138,9 @@ make dev     # starts the dev server
 ## Troubleshooting
 
 ### Database connection errors
-- Check that `DATABASE_URL` in `.env` is a valid Neon PostgreSQL connection string
-- Ensure `sslmode=require` is included in the connection string
+- Local development: make sure `make db-local` is running in another terminal
+- Paseo worktree: re-run `node ./.paseo/local-db.mjs setup` — the PGlite server's ports change between runs, and `.env` is rewritten to match
+- Neon: check that `DATABASE_URL` is a valid connection string and includes `sslmode=require`
 - Run `pnpm exec prisma generate` to regenerate the client
 
 ### Clerk authentication errors

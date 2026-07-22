@@ -74,9 +74,9 @@ async function main() {
   const requiredChecks = [
     {
       key: 'DATABASE_URL',
-      hint: 'Get from console.neon.tech → Project → Connection Details',
-      validate: v => v.startsWith('postgresql://') || v.startsWith('postgres://'),
-      validationHint: 'Must start with postgresql://',
+      hint: 'Run `make db-local` for a local PGlite database, or get a Neon string from console.neon.tech → Project → Connection Details',
+      validate: v => v.startsWith('postgresql://') || v.startsWith('postgres://') || v.startsWith('prisma+postgres://'),
+      validationHint: 'Must start with postgresql://, postgres://, or prisma+postgres://',
       label: () => 'DATABASE_URL'
     },
     {
@@ -108,7 +108,7 @@ async function main() {
     }
   }
 
-  console.log(`\n${BOLD}Optional (Conductor workspace isolation + CI/CD)${RESET}`)
+  console.log(`\n${BOLD}Optional (CI/CD PR preview databases)${RESET}`)
 
   const neonProjectId = env.NEON_PROJECT_ID
   const neonApiKey = env.NEON_API_KEY
@@ -117,7 +117,7 @@ async function main() {
   if (!neonProjectId || !neonApiKey) {
     warn(
       'Neon branching not configured',
-      'Set NEON_PROJECT_ID and NEON_API_KEY to enable Conductor workspace isolation and PR preview databases'
+      'Set NEON_PROJECT_ID and NEON_API_KEY to enable PR preview databases (local dev uses PGlite and needs neither)'
     )
   } else {
     pass(`NEON_PROJECT_ID (${neonProjectId})`)

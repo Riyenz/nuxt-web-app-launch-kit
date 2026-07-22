@@ -20,26 +20,26 @@ Read the appropriate documentation file based on your task:
 - **[Project Architecture](docs/project-architecture.md)** - Understanding project structure and file organization
 - **[Naming Conventions](docs/naming-conventions.md)** - Writing code that follows project style (boolean prefixes, brace style, commas)
 - **[Environment Setup](docs/environment-setup.md)** - Setting up environment variables or initial project setup
-- **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
+- **[Per-Environment Databases](docs/neon-database-branching.md)** - Local PGlite for worktrees, Neon branches for PR previews
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# Install dependencies and set up environment
+cp .env.example .env   # then edit in your Clerk keys
 pnpm install
 
-# Set up environment
-cp .env.example .env
-# Edit .env with your values
+# Start the local PGlite database (leave running), then in a second terminal:
+make db-local
+make db-local-setup    # first run only: migrate, generate, seed
 
-# Initialize database
-pnpm exec prisma generate
-pnpm exec prisma migrate dev
-
-# Start development
-pnpm run dev
+# Start development against the local database
+make dev-local
 ```
+
+In a **Paseo worktree** all of the above already ran — `.paseo/setup.sh` provisions
+the worktree's own PGlite server and points `.env` at it, so plain `pnpm run dev` works.
 
 ## Core Principles
 

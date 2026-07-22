@@ -2,9 +2,9 @@ export default defineNitroPlugin(() => {
   const checks = [
     {
       key: 'DATABASE_URL',
-      hint: 'Get from console.neon.tech → Project → Connection Details',
-      validate: (v: string) => v.startsWith('postgresql://') || v.startsWith('postgres://'),
-      validationHint: 'Must start with postgresql://'
+      hint: 'Run `make db-local` for a local PGlite database, or get a Neon string from console.neon.tech → Project → Connection Details',
+      validate: (v: string) => v.startsWith('postgresql://') || v.startsWith('postgres://') || v.startsWith('prisma+postgres://'),
+      validationHint: 'Must start with postgresql://, postgres://, or prisma+postgres://'
     },
     {
       key: 'NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
