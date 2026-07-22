@@ -117,6 +117,16 @@ If you add the Neon and Vercel values to your local `.env`, you can push them al
 make setup-secrets   # requires gh CLI: https://cli.github.com
 ```
 
+### Required Vercel environment variables
+
+Set these at `Vercel → Project → Settings → Environment Variables`:
+
+| Variable | Environments | Why |
+|---|---|---|
+| `DATABASE_URL` | Production, Preview | `vercel.json` runs `prisma generate` before `nuxt build`, and `prisma.config.ts` resolves `DATABASE_URL` eagerly — a build with none set fails with `PrismaConfigEnvError`. The PR workflow adds a per-branch Preview override on top of this baseline. |
+| `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Production, Preview | Required at runtime by Clerk |
+| `NUXT_CLERK_SECRET_KEY` | Production, Preview | Required at runtime by Clerk |
+
 ### Neon parent branch
 
 The PR workflow forks a new database branch from a shared `development` branch for each PR into `develop`. Create that branch in the Neon console before the first PR runs — local development no longer touches Neon, so nothing creates it automatically.

@@ -10,6 +10,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
 
+    # prisma.config.ts resolves DATABASE_URL eagerly, so every Prisma command
+    # needs one even when it never opens a connection. Nothing in this job talks
+    # to a database, so a placeholder is enough.
+    env:
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,12 +35,10 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      # prisma generate was removed from postinstall, so the generated client
+      # must be built explicitly before anything that imports it typechecks.
       - name: Generate Prisma Client
         run: pnpm exec prisma generate
-        env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Typecheck
         run: pnpm run typecheck
-        env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder

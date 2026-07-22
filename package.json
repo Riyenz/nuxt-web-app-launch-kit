@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "bootstrap": "pnpm install && pnpm exec prisma generate",
-    "build": "prisma generate && nuxt build",
+    "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "db:local": "node scripts/pglite.mjs server",
