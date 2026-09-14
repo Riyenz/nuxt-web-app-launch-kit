@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop db-local db-local-setup db-local-studio dev-local
+.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check check-all setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed db-local db-local-setup db-local-studio dev-local
 
 # Default target
 help: ## Show this help message
@@ -6,7 +6,7 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # Initial setup
-init: ## Complete project setup (install deps, setup env, init database)
+init: ## Complete project setup (install deps, setup env, init local database)
 	@echo "🚀 Starting project setup..."
 	@if [ ! -f .env ]; then \
 		echo "📝 Creating .env file from .env.example..."; \
@@ -15,23 +15,14 @@ init: ## Complete project setup (install deps, setup env, init database)
 		echo "   Get your keys from: https://dashboard.clerk.com"; \
 		exit 1; \
 	fi
-	@echo "📦 Installing dependencies..."
-	@pnpm install
-	@echo "🗄️  Starting Prisma Dev DB..."
-	@pnpm dlx prisma dev --detach
-	@echo "🔗 Updating DATABASE_URL in .env..."
-	@URL=$$(pnpm dlx prisma dev ls 2>&1 | cat -v | grep -oE '\^\[\]8;;prisma\+postgres://[^^]+' | head -1 | sed 's/\^\[\]8;;// '); \
-	if [ -n "$$URL" ]; then \
-		sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL='"$$URL"'|' .env; \
-		echo "   DATABASE_URL=$$URL"; \
-	else \
-		echo "⚠️  Could not extract DATABASE_URL from prisma dev ls"; \
-	fi
-	@echo "🗄️  Generating Prisma Client..."
-	@pnpm exec prisma generate
-	@echo "🔄 Running database migrations..."
-	@pnpm exec prisma migrate dev
-	@echo "✅ Setup complete! Run 'make dev' to start the development server."
+	@echo "📦 Installing dependencies and generating the Prisma client..."
+	@pnpm bootstrap
+	@echo "✅ Dependencies ready."
+	@echo ""
+	@echo "Next, start the local PGlite database and initialize it:"
+	@echo "  1. make db-local        # in a terminal you leave running"
+	@echo "  2. make db-local-setup  # in a second terminal (first run only)"
+	@echo "  3. make dev-local       # start the dev server against it"
 
 # Development
 dev: ## Start development server
@@ -97,12 +88,6 @@ prisma-deploy: ## Apply migrations in production
 prisma-seed: ## Seed the database with mock data
 	pnpm run seed
 
-prisma-dev: ## Start Prisma Dev DB (detached)
-	pnpm dlx prisma dev --detach
-
-prisma-dev-stop: ## Stop Prisma Dev DB
-	pnpm dlx prisma dev stop default
-
 # Dependencies
 install: ## Install dependencies
 	pnpm install
@@ -122,4 +107,6 @@ setup-secrets: ## Sync .env CI/CD variables to GitHub Actions secrets (requires 
 check: lint typecheck ## Run all quality checks (lint + typecheck)
 
 check-all: lint typecheck test-unit ## Run every check CI runs on a release PR
-setup: install prisma-generate ## Setup the project (install deps + generate Prisma client)
+
+setup: ## Setup the project (install deps + generate Prisma client)
+	pnpm bootstrap

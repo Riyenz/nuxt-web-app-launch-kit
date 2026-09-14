@@ -1,0 +1,6 @@
+{
+  "worktree": {
+    "setup": "./.paseo/setup.sh",
+    "teardown": "./.paseo/teardown.sh"
+  }
+}

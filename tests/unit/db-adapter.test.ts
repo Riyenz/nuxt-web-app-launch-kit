@@ -45,6 +45,15 @@ describe('createDbAdapter', () => {
     expect(adapter.adapterName).toBe(POSTGRES)
   })
 
+  it('unwraps a local prisma+postgres URL to node-postgres', () => {
+    const tcp = 'postgres://postgres:postgres@localhost:51214/template1?pool_timeout=0'
+    const apiKey = Buffer.from(JSON.stringify({ databaseUrl: tcp })).toString('base64url')
+    const adapter = createDbAdapter(`prisma+postgres://localhost:51213/?api_key=${apiKey}`)
+
+    expect(adapter.adapterName).toBe(POSTGRES)
+    expect(poolMaxOf(adapter)).toBe(1)
+  })
+
   it('uses node-postgres for a plain Postgres URL, like the CI service container', () => {
     const adapter = createDbAdapter('postgres://postgres:postgres@localhost:5432/ci')
 

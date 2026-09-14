@@ -40,9 +40,7 @@
   "dependencies": {
     "@clerk/nuxt": "^2.0.5",
     "@iconify-json/hugeicons": "^1.2.24",
-    "@libsql/client": "^0.17.0",
     "@nuxt/ui": "^4.5.1",
-    "@prisma/adapter-libsql": "^7.5.0",
     "@prisma/adapter-neon": "^7.5.0",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",

@@ -23,7 +23,7 @@ Read the appropriate documentation file based on your task:
 - **[Testing](docs/testing.md)** - Writing or running unit and E2E tests, and how the captured Clerk session fixture works
 - **[Test Accounts](docs/test-accounts.md)** - Credentials and seed data for manual QA, screenshots and E2E
 - **[App Screenshots](docs/screenshots.md)** - Screenshotting a change in the running app with `pnpm shot`
-- **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
+- **[Per-Environment Databases](docs/neon-database-branching.md)** - Local PGlite for worktrees, Neon branches for PR previews
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
 
 ## Quick Start
@@ -33,15 +33,15 @@ Read the appropriate documentation file based on your task:
 pnpm bootstrap
 
 # Or, on a fresh clone with no shared env yet
+cp .env.example .env   # then edit in your Clerk keys
 pnpm install
-cp .env.example .env   # then edit it with your values
-pnpm exec prisma generate
 
-# Apply migrations
-pnpm exec prisma migrate dev
+# Start the local PGlite database (leave running), then in a second terminal:
+make db-local
+make db-local-setup    # first run only: migrate, generate, seed
 
-# Start development
-pnpm run dev
+# Start development against the local database
+make dev-local
 ```
 
 `prisma generate` is deliberately **not** in `postinstall`: it needs `DATABASE_URL`, which
@@ -49,6 +49,9 @@ does not exist the first time `pnpm install` runs. Re-run it after schema change
 
 No Neon account? `pnpm db:local` + `pnpm dev:local` runs the whole app against a local
 Postgres — see [Environment Setup](docs/environment-setup.md#running-without-neon).
+
+In a **Paseo worktree** all of the above already ran — `.paseo/setup.sh` provisions
+the worktree's own PGlite server and points `.env` at it, so plain `pnpm run dev` works.
 
 ## Core Principles
 

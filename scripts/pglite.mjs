@@ -9,16 +9,19 @@
 //
 // `exec` injects DATABASE_URL / DIRECT_URL / SHADOW_DATABASE_URL so Prisma and
 // Nuxt talk to PGlite instead of Neon, without touching the committed .env.
+//
+// Paseo worktrees don't use this script — they each get their own detached
+// server on ports Prisma picks; see .paseo/local-db.mjs.
 import { spawn } from 'node:child_process'
 
 // `prisma dev` refuses to start on a port another Prisma Dev server already owns, and
 // 51213-51215 is its documented default range — so a second project on this machine
 // collides with the first. These defaults sit clear of it; override with the env vars
 // if you run several checkouts of THIS project at once.
-const NAME = process.env.PGLITE_NAME ?? 'launchkit'
-const PORT = process.env.PGLITE_PORT ?? '51413'
-const DB_PORT = process.env.PGLITE_DB_PORT ?? '51414'
-const SHADOW_DB_PORT = process.env.PGLITE_SHADOW_DB_PORT ?? '51415'
+const NAME = process.env.PGLITE_NAME ?? 'launch-kit'
+const PORT = process.env.PGLITE_PORT ?? '51313'
+const DB_PORT = process.env.PGLITE_DB_PORT ?? '51314'
+const SHADOW_DB_PORT = process.env.PGLITE_SHADOW_DB_PORT ?? '51315'
 
 function localUrl(port) {
   return `postgres://postgres:postgres@localhost:${port}/template1?sslmode=disable`

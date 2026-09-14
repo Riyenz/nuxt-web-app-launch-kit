@@ -31,12 +31,10 @@ logs
 /lib/generated/prisma
 /generated/prisma
 
-# Conductor
+# Paseo worktree metadata
 .context
-.vercel
 
-# Superset
-.superset/config.local.json
+.vercel
 
 *storybook.log
 storybook-static
