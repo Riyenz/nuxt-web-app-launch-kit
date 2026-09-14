@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../generated/prisma/client'
-import { PrismaNeon } from '@prisma/adapter-neon'
+import { createDbAdapter } from './db-adapter'
 
-const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
+const adapter = createDbAdapter()
 export const prisma = new PrismaClient({ adapter })

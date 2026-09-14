@@ -1,6 +1,21 @@
 name: ci
 
-on: push
+# Pull requests only. Running on push as well means a develop -> master PR fires twice
+# on the same commit, since its head commit is also the develop tip.
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   ci:
@@ -9,6 +24,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
 
     steps:
       - name: Checkout
@@ -31,10 +49,24 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm exec prisma generate
-        env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      # The release gate. Feature branches merge into develop many times a day and only
+      # need the lint and typecheck above; the suite runs once on the develop -> master
+      # pull request, where a regression would otherwise reach production. `base_ref` is
+      # set on pull_request only.
+      - name: Unit tests
+        if: github.base_ref == 'master'
+        run: pnpm run test:unit
+
+      # Also the release gate, and only there. Feature PRs into develop get their
+      # production build check from the Vercel preview deployment.
+      - name: Build
+        if: github.base_ref == 'master'
+        run: pnpm run build
         env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          NODE_OPTIONS: --max-old-space-size=4096
+          NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NUXT_CLERK_SECRET_KEY: ${{ secrets.NUXT_CLERK_SECRET_KEY }}

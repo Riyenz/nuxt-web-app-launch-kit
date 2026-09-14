@@ -13,11 +13,22 @@ All project commands in one place.
 ## Validation Commands
 
 ```bash
-make check              # Run both lint and typecheck
+make check               # Run both lint and typecheck
 pnpm run lint            # Run ESLint
-pnpm run lint --fix      # Auto-fix lint issues
-pnpm run typecheck       # Run TypeScript type checker
+pnpm run lint:verbose    # Same, but always print the full output
+pnpm run typecheck       # Type-check the app AND tests/
 ```
+
+`lint`, `typecheck` and the test commands go through `scripts/quiet.mjs`: on success they
+print one line (`✓ lint passed (3.6s)`), on failure they replay everything. Passing is the
+common case, so this keeps a terminal — and an agent's context — readable. Every one of
+them has a `:verbose` twin that skips the wrapper.
+
+`typecheck` runs `nuxt typecheck` **and** `tsc -p tsconfig.test.json`. Nuxt's generated
+project only covers `app/` and `server/`, so without the second pass a broken type in a
+spec would not surface until the suite ran.
+
+To auto-fix lint issues: `pnpm exec eslint . --fix`.
 
 ## Development Commands
 
@@ -26,6 +37,61 @@ pnpm run dev             # Start development server
 pnpm run build           # Build for production
 pnpm run preview         # Preview production build
 pnpm install             # Install dependencies
+pnpm bootstrap           # Fresh checkout: install + decode .env + generate client
+```
+
+## Testing
+
+```bash
+pnpm test:unit           # Vitest unit tests (no database, no browser)
+pnpm test:unit:watch     # Re-run on change
+pnpm test:e2e            # Playwright end-to-end suite
+pnpm test:e2e:ui         # Playwright's interactive runner
+pnpm test:e2e:install    # Once per machine: download the Chromium build
+```
+
+See [Testing](testing.md) — especially the captured-session fixture, which is why specs
+never sign in to Clerk themselves.
+
+## Local Database (no Neon account)
+
+```bash
+pnpm db:local            # Start a local Postgres (PGlite), leave it running
+pnpm db:local:setup      # Migrate, generate the client, seed it
+pnpm dev:local           # Run the app against it
+pnpm db:local:studio     # Prisma Studio pointed at it
+```
+
+See [Environment Setup → Running Without Neon](environment-setup.md#running-without-neon).
+
+## Screenshots
+
+```bash
+pnpm shot dashboard              # Screenshot a screen as the owner
+pnpm shot dashboard --responsive # Desktop and mobile in one run
+pnpm shot --list                 # Every named screen and role
+pnpm shot --stop                 # Stop the cached dev server
+```
+
+Prefer the `screenshot` subagent over calling this inline — see
+[App Screenshots](screenshots.md).
+
+## Cloud File Review
+
+```bash
+pnpm upload <file>       # Upload a file and print a public link
+```
+
+Uploads to a Vercel Blob store and prints a URL that previews inline on a phone — videos
+stream, PDFs and images render, no download first. Needs `BLOB_READ_WRITE_TOKEN` in
+`.env` and the `vercel` CLI. The links are public, so ask before uploading.
+
+## Environment Commands
+
+```bash
+pnpm setup:env           # Decode .env.example into .env
+pnpm env:sync            # Re-encrypt .env.example from .env after adding a variable
+pnpm env:check           # Warn about variables in .env that .env.example is missing
 ```
 
 ## Prisma Commands
@@ -67,3 +133,11 @@ pnpm run lint && pnpm run typecheck
 pnpm exec prisma generate
 pnpm run typecheck
 ```
+
+### Before Opening a PR
+```bash
+pnpm run lint && pnpm run typecheck && pnpm test:unit
+```
+
+The `pre-commit` hook already runs `env:check`, `lint` and `typecheck`. Unit tests are not
+in the hook — they are a CI gate on the develop → master pull request.

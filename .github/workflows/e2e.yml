@@ -1,0 +1,119 @@
+name: e2e
+
+# Single E2E gate, on the release pull request only (develop -> master). The full
+# Playwright suite is expensive, so rather than always paying for it,
+# scripts/ci/select-e2e-tests.mjs maps the PR diff to the specs it can affect and
+# falls back to the full suite for shared or unclassified runtime files.
+# When the diff touches nothing with E2E coverage, the job ends after selection —
+# no build, no seed, no browsers. The Postgres service container still starts
+# during job setup (a few seconds); that is cheaper than making the service
+# conditional.
+#
+# Deliberately no paths-ignore: this job is a required status check on master, and a
+# workflow that never triggers reports nothing, leaving a docs-only PR pending forever
+# with no way to merge it. The selector's early exit already makes those runs cheap
+# (~20s), so filtering by path here would buy nothing and cost mergeability.
+on:
+  pull_request:
+    branches:
+      - master
+
+# Serialize runs per pull request. Don't cancel an in-flight run: the suite signs in
+# against the shared Clerk development instance and cleans up the rows it creates in
+# Playwright's afterEach hooks. A canceled runner never reaches them.
+concurrency:
+  group: e2e-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: launchkit_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/launchkit_e2e
+      # A real Postgres can use a real pool; app/lib/db-adapter.ts defaults to a
+      # single connection because it cannot tell this URL from a local PGlite one.
+      DB_POOL_MAX: '10'
+      NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      NUXT_CLERK_SECRET_KEY: ${{ secrets.NUXT_CLERK_SECRET_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the selector can diff the PR's merge base against its head.
+          fetch-depth: 0
+
+      - name: Select E2E specs for the PR diff
+        id: select
+        run: |
+          node scripts/ci/select-e2e-tests.mjs \
+            --base ${{ github.event.pull_request.base.sha }} \
+            --head ${{ github.event.pull_request.head.sha }} \
+            --spec-list e2e-specs.txt \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Install pnpm
+        if: steps.select.outputs.is_required == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        if: steps.select.outputs.is_required == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.select.outputs.is_required == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        if: steps.select.outputs.is_required == 'true'
+        run: pnpm exec prisma generate
+
+      - name: Install Playwright browsers
+        if: steps.select.outputs.is_required == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The suite runs against this production build (playwright.config.ts serves
+      # .output/server/index.mjs in CI): the dev server's on-demand compilation
+      # can't sustain concurrent Playwright projects and makes timings flaky.
+      - name: Build app
+        if: steps.select.outputs.is_required == 'true'
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm run build
+
+      - name: Migrate and seed
+        if: steps.select.outputs.is_required == 'true'
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm run seed
+
+      # Playwright treats the listed spec paths as filters; the auth setup project
+      # still runs first because the filtered projects declare it as a dependency.
+      - name: Run selected e2e tests
+        if: steps.select.outputs.is_required == 'true'
+        run: pnpm exec playwright test $(tr '\n' ' ' < e2e-specs.txt)
+
+      - name: Upload Playwright report
+        if: always() && steps.select.outputs.is_required == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

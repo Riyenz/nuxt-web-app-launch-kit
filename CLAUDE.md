@@ -19,27 +19,36 @@ Read the appropriate documentation file based on your task:
 - **[Prisma Workflow](docs/prisma-workflow.md)** - Database schema, migrations, or Prisma Client usage
 - **[Project Architecture](docs/project-architecture.md)** - Understanding project structure and file organization
 - **[Naming Conventions](docs/naming-conventions.md)** - Writing code that follows project style (boolean prefixes, brace style, commas)
-- **[Environment Setup](docs/environment-setup.md)** - Setting up environment variables or initial project setup
+- **[Environment Setup](docs/environment-setup.md)** - Setting up environment variables, running without Neon, or sharing env values across checkouts
+- **[Testing](docs/testing.md)** - Writing or running unit and E2E tests, and how the captured Clerk session fixture works
+- **[Test Accounts](docs/test-accounts.md)** - Credentials and seed data for manual QA, screenshots and E2E
+- **[App Screenshots](docs/screenshots.md)** - Screenshotting a change in the running app with `pnpm shot`
 - **[Neon Database Branching](docs/neon-database-branching.md)** - Workspace and PR-specific Neon database provisioning
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# Install dependencies, decode .env, generate the Prisma client
+pnpm bootstrap
+
+# Or, on a fresh clone with no shared env yet
 pnpm install
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your values
-
-# Initialize database
+cp .env.example .env   # then edit it with your values
 pnpm exec prisma generate
+
+# Apply migrations
 pnpm exec prisma migrate dev
 
 # Start development
 pnpm run dev
 ```
+
+`prisma generate` is deliberately **not** in `postinstall`: it needs `DATABASE_URL`, which
+does not exist the first time `pnpm install` runs. Re-run it after schema changes.
+
+No Neon account? `pnpm db:local` + `pnpm dev:local` runs the whole app against a local
+Postgres — see [Environment Setup](docs/environment-setup.md#running-without-neon).
 
 ## Core Principles
 
@@ -48,12 +57,38 @@ pnpm run dev
 3. **Boolean Naming**: Always use `is` prefix (never `has`)
 4. **Database Access**: Always import `prisma from '~/lib/prisma'` (singleton pattern)
 5. **Prisma Client**: Regenerate with `pnpm exec prisma generate` after schema changes
+6. **Tests**: Unit tests in `tests/unit/` (pure logic, no DB), E2E in `tests/e2e/`. Never sign in to Clerk from a spec — use the wrappers in `tests/e2e/helpers/auth.ts`, which replay a session captured once. See [Testing](docs/testing.md)
+
+`pnpm run lint`, `pnpm run typecheck` and the test commands print one line when they pass
+and replay everything when they fail. Add `:verbose` to any of them to see the full output.
+`typecheck` covers `tests/` as well as the app.
+
+## Showing a Change
+
+**Delegate it.** Spawn the `screenshot` subagent (`.claude/agents/screenshot.md`, runs on
+a fast model) instead of taking screenshots inline — the work is one deterministic
+command, so it does not need the main model's reasoning. Give it the screen, the role and
+the viewport in plain words; it returns the file paths and what each shot shows.
+
+The subagent runs `pnpm shot` — never a hand-driven dev server, Clerk sign-in and click
+path:
+
+```bash
+pnpm shot dashboard                # named screen as the owner
+pnpm shot /app/dashboard --dark
+pnpm shot dashboard --responsive   # desktop + mobile of one screen
+pnpm shot landing dashboard        # two screens, one run
+```
+
+`pnpm shot --list` prints every named screen and role. The server and each role's Clerk
+session are cached between calls, so a warm capture is a few seconds and a cold one pays
+once for the server and one sign-in. Every run prints its own timings. Full reference:
+[App Screenshots](docs/screenshots.md).
 
 ## Browser Testing
 
-Use **playwright-cli** (not agent-browser) for all browser automation and testing tasks.
-
-**Always record video evidence when testing:**
+For automation that is not a screenshot and not an E2E spec, use **playwright-cli** (not
+agent-browser), and record video evidence:
 
 ```bash
 playwright-cli open https://localhost:3000
@@ -63,10 +98,12 @@ playwright-cli video-stop
 playwright-cli close
 ```
 
-**Clerk test accounts:**
-
-| Email | Password |
-|-------|----------|
-| admin+clerk_test@avit.dev | !taXfov-8sipgo-qeqrap |
+Credentials and seed data: [Test Accounts](docs/test-accounts.md).
 
 Skill reference: `/Users/ivanotiong/.claude/skills/playwright-cli/SKILL.md`
+
+## Reviewing Generated Assets
+
+When you generate a reviewable artifact — a screenshot, an image, a video, a PDF —
+**offer to upload it for phone review**: `pnpm upload <file>` returns a public URL that
+previews inline on mobile. Ask before uploading, since the links are public.

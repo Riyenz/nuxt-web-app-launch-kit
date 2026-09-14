@@ -9,8 +9,11 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - **Clerk** — Complete authentication with user management
 - **Prisma ORM** — Type-safe database access with Neon PostgreSQL
 - **pnpm** — Fast, efficient package manager
-- **ESLint & TypeScript** — Code quality and type safety enforced
-- **GitHub Actions** — CI with lint, typecheck, and per-PR Neon database branches
+- **ESLint & TypeScript** — Code quality and type safety enforced, tests included
+- **Vitest & Playwright** — Unit tests, plus an E2E suite that signs in to Clerk once and replays the session
+- **Local Postgres** — `pnpm dev:local` runs the whole app with no Neon account and no Docker
+- **`pnpm shot`** — One command screenshots any screen of the running app in seconds
+- **GitHub Actions** — CI with lint, typecheck, diff-selected E2E, and per-PR Neon database branches
 - **Vercel** — Preview deployments with isolated databases per PR
 
 ---
@@ -119,11 +122,51 @@ make install         # Install/update dependencies
 ```bash
 make lint            # Run ESLint
 make lint-fix        # Auto-fix lint issues
-make typecheck       # Run TypeScript type checker
+make typecheck       # Type-check the app and tests/
 make check           # Run both lint and typecheck
+make check-all       # Everything CI runs on a release PR (adds unit tests)
 ```
 
-All code changes must pass `make check` before being committed.
+All code changes must pass `make check` before being committed — the `pre-commit` hook
+runs it for you. These commands print a single line when they pass and replay the full
+output when they fail; add `:verbose` to the underlying `pnpm` script to see everything.
+
+### Testing
+
+```bash
+make test-unit           # Vitest unit tests (no database, no browser)
+make test-e2e            # Playwright end-to-end suite
+pnpm test:e2e:install    # Once per machine: download the Chromium build
+pnpm test:e2e:ui         # Playwright's interactive runner
+```
+
+Specs never sign in to Clerk themselves. A `setup` project mints one session per role into
+`tests/e2e/.auth/`, and every spec replays it — which is what keeps the suite off Clerk's
+rate limit. See [Testing](docs/testing.md).
+
+### Local Database (no Neon account)
+
+```bash
+make db-local            # Terminal 1: start a local Postgres (PGlite), leave running
+make db-local-setup      # Terminal 2: migrate, generate the client, seed
+make dev-local           # Terminal 2: run the app against it
+make db-local-studio     # Prisma Studio pointed at it
+```
+
+Backed by Prisma 7's bundled PGlite — real Postgres compiled to WebAssembly, so enums,
+JSON, Decimal and advisory locks behave like production. Your `.env` is never touched.
+
+### Screenshots
+
+```bash
+pnpm shot dashboard               # Screenshot a screen as the owner
+pnpm shot dashboard --responsive  # Desktop and mobile in one run
+pnpm shot --list                  # Every named screen and role
+pnpm shot --stop                  # Stop the cached dev server
+```
+
+The dev server and each Clerk session are cached between calls, so a warm capture takes
+seconds. See [App Screenshots](docs/screenshots.md).
 
 ### Database (Prisma)
 
@@ -139,8 +182,10 @@ make prisma-reset        # Reset database (dev only — WARNING: deletes all dat
 
 ```bash
 make init            # Full first-time setup (install + generate + migrate)
+pnpm bootstrap       # Same idea for a shared-env checkout (install + decode .env + generate)
 make doctor          # Check environment variables and service connectivity
 make setup-secrets   # Sync CI/CD variables from .env to GitHub Actions secrets
+pnpm upload <file>   # Upload a file and print a public link for phone review
 make clean           # Clean build artifacts
 make help            # List all available commands
 ```
@@ -192,15 +237,24 @@ make help            # List all available commands
 │   ├── migrations/        # Migration history
 │   └── schema.prisma      # Database schema
 ├── scripts/
-│   ├── ci/                # GitHub Actions scripts
+│   ├── ci/                # GitHub Actions scripts (incl. E2E spec selection)
 │   ├── conductor/         # Conductor workspace scripts
-│   └── setup/             # One-time setup helpers
+│   ├── setup/             # One-time setup helpers
+│   ├── pglite.mjs         # Local Docker-free Postgres
+│   ├── quiet.mjs          # Buffers command output; one line when it passes
+│   └── shot.mjs           # `pnpm shot` — screenshot the running app
 ├── server/
 │   ├── api/               # API route handlers
 │   └── plugins/           # Server startup plugins (env validation)
+├── tests/
+│   ├── unit/              # Vitest — pure logic, no DB or browser
+│   └── e2e/               # Playwright, with the captured-session auth fixture
+├── .claude/agents/        # Subagent definitions (screenshot)
 ├── .github/workflows/     # CI/CD workflows
-├── conductor.json          # Conductor workspace configuration
+├── conductor.json         # Conductor workspace configuration
 ├── Makefile               # Developer commands
+├── playwright.config.ts   # E2E projects and their data grouping
+├── vitest.config.ts       # Unit test configuration
 └── nuxt.config.ts         # Nuxt configuration
 ```
 
@@ -216,7 +270,9 @@ make help            # List all available commands
 | Prisma | 7.1.0 | Database ORM |
 | TypeScript | 5.9.3 | Type safety |
 | Tailwind CSS | — | Utility-first CSS (via Nuxt UI) |
-| ESLint | 9.39.2 | Code linting |
+| ESLint | 9.39.3 | Code linting |
+| Vitest | 4.1.7 | Unit tests |
+| Playwright | 1.59+ | End-to-end tests |
 | pnpm | 10.6.0+ | Package manager |
 
 ---
@@ -225,8 +281,11 @@ make help            # List all available commands
 
 | Doc | When to read |
 |---|---|
-| [Environment Setup](docs/environment-setup.md) | Detailed env var instructions |
+| [Environment Setup](docs/environment-setup.md) | Env vars, running without Neon, sharing values across checkouts |
 | [Commands Reference](docs/commands-reference.md) | All available commands |
+| [Testing](docs/testing.md) | Unit and E2E tests, and the captured-session fixture |
+| [Test Accounts](docs/test-accounts.md) | Credentials and seed data |
+| [App Screenshots](docs/screenshots.md) | `pnpm shot` and the screenshot subagent |
 | [Prisma Workflow](docs/prisma-workflow.md) | Database schema and migrations |
 | [Project Architecture](docs/project-architecture.md) | File organization |
 | [Naming Conventions](docs/naming-conventions.md) | Code style guidelines |

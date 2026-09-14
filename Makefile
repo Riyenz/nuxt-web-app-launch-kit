@@ -1,9 +1,9 @@
-.PHONY: dev build preview lint lint-fix typecheck install clean check setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop
+.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed prisma-dev prisma-dev-stop db-local db-local-setup db-local-studio dev-local
 
 # Default target
 help: ## Show this help message
 	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # Initial setup
 init: ## Complete project setup (install deps, setup env, init database)
@@ -50,7 +50,31 @@ lint: ## Run ESLint
 lint-fix: ## Run ESLint and auto-fix issues
 	pnpm run lint --fix
 
-typecheck: ## Run TypeScript type checking
+test: test-unit ## Run the unit tests
+
+test-unit: ## Run the Vitest unit tests
+	pnpm run test:unit
+
+test-e2e: ## Run the Playwright end-to-end suite
+	pnpm run test:e2e
+
+shot: ## Screenshot a screen, e.g. make shot SCREEN=dashboard
+	pnpm shot $(SCREEN)
+
+# Local database (PGlite — no Neon account, no Docker)
+db-local: ## Start the local Postgres server (keep running)
+	pnpm run db:local
+
+db-local-setup: ## Migrate, generate the client and seed the local database
+	pnpm run db:local:setup
+
+db-local-studio: ## Open Prisma Studio against the local database
+	pnpm run db:local:studio
+
+dev-local: ## Start the dev server against the local database
+	pnpm run dev:local
+
+typecheck: ## Run TypeScript type checking (app and tests)
 	pnpm run typecheck
 
 # Database (Prisma)
@@ -95,5 +119,7 @@ setup-secrets: ## Sync .env CI/CD variables to GitHub Actions secrets (requires 
 	./scripts/setup/sync-github-secrets.sh
 
 # Combined commands
-check: lint typecheck ## Run all quality checks
+check: lint typecheck ## Run all quality checks (lint + typecheck)
+
+check-all: lint typecheck test-unit ## Run every check CI runs on a release PR
 setup: install prisma-generate ## Setup the project (install deps + generate Prisma client)
