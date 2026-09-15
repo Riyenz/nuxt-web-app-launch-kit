@@ -9,8 +9,8 @@ const meta = {
     color: 'primary',
     variant: 'solid',
     size: 'md',
-    icon: 'i-hugeicons-rocket-01',
-    trailingIcon: 'i-hugeicons-arrow-right-02',
+    icon: 'hugeicons:rocket-01',
+    trailingIcon: 'hugeicons:arrow-right-02',
     block: false,
     loading: false,
     disabled: false
@@ -54,16 +54,16 @@ export const Variants: Story = {
     template: `
       <div class="grid w-[520px] gap-5 rounded-lg border border-default bg-elevated p-6">
         <div class="flex flex-wrap gap-3">
-          <UButton label="Solid" color="primary" variant="solid" icon="i-hugeicons-rocket-01" />
-          <UButton label="Soft" color="secondary" variant="soft" icon="i-hugeicons-sparkles" />
-          <UButton label="Outline" color="neutral" variant="outline" icon="i-hugeicons-dashboard-square-01" />
-          <UButton label="Subtle" color="success" variant="subtle" icon="i-hugeicons-checkmark-circle-02" />
+          <UButton label="Solid" color="primary" variant="solid" icon="hugeicons:rocket-01" />
+          <UButton label="Soft" color="secondary" variant="soft" icon="hugeicons:sparkles" />
+          <UButton label="Outline" color="neutral" variant="outline" icon="hugeicons:dashboard-square-01" />
+          <UButton label="Subtle" color="success" variant="subtle" icon="hugeicons:checkmark-circle-02" />
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-          <UButton aria-label="Add item" color="primary" icon="i-hugeicons-plus-sign" square />
-          <UButton aria-label="View calendar" color="info" icon="i-hugeicons-calendar-03" variant="soft" square />
-          <UButton label="Loading" color="primary" icon="i-hugeicons-rocket-01" loading />
+          <UButton aria-label="Add item" color="primary" icon="hugeicons:plus-sign" square />
+          <UButton aria-label="View calendar" color="info" icon="hugeicons:calendar-03" variant="soft" square />
+          <UButton label="Loading" color="primary" icon="hugeicons:rocket-01" loading />
           <UButton label="Disabled" color="neutral" disabled variant="outline" />
         </div>
       </div>

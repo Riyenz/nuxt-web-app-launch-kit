@@ -10,31 +10,31 @@ type NavItem = {
 }
 
 const primary = ref<NavItem[]>([
-  { label: 'Dashboard', icon: 'i-hugeicons-dashboard-square-01', active: true },
-  { label: 'Orders', icon: 'i-hugeicons-package', badge: '46' },
-  { label: 'Products', icon: 'i-hugeicons-tag-01' },
-  { label: 'Customers', icon: 'i-hugeicons-user-group' },
-  { label: 'Content', icon: 'i-hugeicons-image-01' },
-  { label: 'Online Store', icon: 'i-hugeicons-store-01' }
+  { label: 'Dashboard', icon: 'hugeicons:dashboard-square-01', active: true },
+  { label: 'Orders', icon: 'hugeicons:package', badge: '46' },
+  { label: 'Products', icon: 'hugeicons:tag-01' },
+  { label: 'Customers', icon: 'hugeicons:user-group' },
+  { label: 'Content', icon: 'hugeicons:image-01' },
+  { label: 'Online Store', icon: 'hugeicons:store-01' }
 ])
 
 const secondary = ref<NavItem[]>([
   {
     label: 'Finances',
-    icon: 'i-hugeicons-wallet-01',
+    icon: 'hugeicons:wallet-01',
     children: [
       { label: 'Invoices' },
       { label: 'Transactions' },
       { label: 'Reports' }
     ]
   },
-  { label: 'Analytics', icon: 'i-hugeicons-chart-01' },
-  { label: 'Discounts', icon: 'i-hugeicons-discount-01' }
+  { label: 'Analytics', icon: 'hugeicons:chart-01' },
+  { label: 'Discounts', icon: 'hugeicons:discount-01' }
 ])
 
 const footer = ref<NavItem[]>([
-  { label: 'Settings', icon: 'i-hugeicons-settings-02' },
-  { label: 'Help & Support', icon: 'i-hugeicons-help-circle' }
+  { label: 'Settings', icon: 'hugeicons:settings-02' },
+  { label: 'Help & Support', icon: 'hugeicons:help-circle' }
 ])
 
 const isFinancesOpen = ref(true)
@@ -65,7 +65,7 @@ watch(isCollapsed, (value) => {
           "
         >
           <UIcon
-            name="i-hugeicons-shopping-bag-02"
+            name="hugeicons:shopping-bag-02"
             class="size-4"
           />
         </div>
@@ -150,7 +150,7 @@ watch(isCollapsed, (value) => {
             >{{ item.label }}</span>
             <UIcon
               v-if="item.children && !isCollapsed"
-              :name="isFinancesOpen ? 'i-hugeicons-arrow-up-01' : 'i-hugeicons-arrow-down-01'"
+              :name="isFinancesOpen ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
               class="size-4"
             />
           </button>
@@ -211,7 +211,7 @@ watch(isCollapsed, (value) => {
         "
       >
         <UIcon
-          name="i-hugeicons-crown"
+          name="hugeicons:crown"
           class="size-4"
         />
       </div>
@@ -244,7 +244,7 @@ watch(isCollapsed, (value) => {
         "
       >
         <UIcon
-          name="i-hugeicons-crown"
+          name="hugeicons:crown"
           class="size-5"
         />
       </button>

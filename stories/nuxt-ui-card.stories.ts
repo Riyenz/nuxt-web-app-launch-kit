@@ -38,7 +38,7 @@ export const ProjectStatus: Story = {
               <p class="text-sm text-muted">Workspace</p>
               <h3 class="mt-1 text-lg font-semibold text-highlighted">{{ args.title }}</h3>
             </div>
-            <UBadge color="success" variant="soft" icon="i-hugeicons-checkmark-circle-02">
+            <UBadge color="success" variant="soft" icon="hugeicons:checkmark-circle-02">
               {{ args.status }}
             </UBadge>
           </div>
@@ -47,7 +47,7 @@ export const ProjectStatus: Story = {
         <div class="space-y-5">
           <UAlert
             color="primary"
-            icon="i-hugeicons-sparkles"
+            icon="hugeicons:sparkles"
             title="Nuxt UI is available in Storybook"
             description="This story renders UCard, UBadge, UAlert, UProgress, UAvatar, and UButton through the Nuxt Storybook runtime."
             variant="soft"
@@ -65,13 +65,13 @@ export const ProjectStatus: Story = {
         <template #footer>
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-              <UAvatar icon="i-hugeicons-user" size="sm" />
+              <UAvatar icon="hugeicons:user" size="sm" />
               <div>
                 <p class="text-sm font-medium text-highlighted">Product team</p>
                 <p class="text-xs text-muted">Updated just now</p>
               </div>
             </div>
-            <UButton label="Review" color="primary" trailing-icon="i-hugeicons-arrow-right-02" variant="soft" />
+            <UButton label="Review" color="primary" trailing-icon="hugeicons:arrow-right-02" variant="soft" />
           </div>
         </template>
       </UCard>
@@ -84,9 +84,9 @@ export const AlertStates: Story = {
     components: { UAlert },
     template: `
       <div class="grid w-[520px] gap-4">
-        <UAlert color="success" icon="i-hugeicons-checkmark-circle-02" title="Ready to ship" description="All required launch checks are complete." />
-        <UAlert color="warning" icon="i-hugeicons-alert-02" title="Needs review" description="Invite copy still needs stakeholder approval." variant="soft" />
-        <UAlert color="error" icon="i-hugeicons-alert-circle" title="Blocked" description="Payment provider keys are missing in this environment." variant="subtle" />
+        <UAlert color="success" icon="hugeicons:checkmark-circle-02" title="Ready to ship" description="All required launch checks are complete." />
+        <UAlert color="warning" icon="hugeicons:alert-02" title="Needs review" description="Invite copy still needs stakeholder approval." variant="soft" />
+        <UAlert color="error" icon="hugeicons:alert-circle" title="Blocked" description="Payment provider keys are missing in this environment." variant="subtle" />
       </div>
     `
   })

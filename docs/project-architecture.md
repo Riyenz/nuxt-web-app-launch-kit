@@ -42,7 +42,8 @@
 ### App Config (`app/app.config.ts`)
 
 - **UI Colors**:
-  - Primary: green
+  - Primary: blue
+  - Secondary: indigo
   - Neutral: slate
 
 ### Prisma Schema (`prisma/schema.prisma`)

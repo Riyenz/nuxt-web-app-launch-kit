@@ -33,7 +33,7 @@
               "
             >
               <UIcon
-                name="i-hugeicons-calendar-03"
+                name="hugeicons:calendar-03"
                 class="size-4 shrink-0 text-muted"
               />
               <span class="truncate whitespace-nowrap">
@@ -51,13 +51,13 @@
             >
               <span class="whitespace-nowrap">Last 30 days</span>
               <UIcon
-                name="i-hugeicons-arrow-down-01"
+                name="hugeicons:arrow-down-01"
                 class="size-4 text-muted"
               />
             </button>
           </div>
           <UButton
-            icon="i-hugeicons-download-04"
+            icon="hugeicons:download-04"
             label="Export"
             color="primary"
             class="
@@ -107,7 +107,7 @@
               :class="stat.isUp ? 'text-success' : 'text-error'"
             >
               <UIcon
-                :name="stat.isUp ? 'i-hugeicons-arrow-up-right-01' : 'i-hugeicons-arrow-down-right-01'"
+                :name="stat.isUp ? 'hugeicons:arrow-up-right-01' : 'hugeicons:arrow-down-right-01'"
                 class="size-3.5"
               />
               {{ stat.delta }}
@@ -128,9 +128,9 @@ definePageMeta({
 })
 
 const stats = [
-  { label: 'Page Views', value: '16,431', delta: '+15.3%', isUp: true, previous: '14,253', icon: 'i-hugeicons-view' },
-  { label: 'Visitors', value: '6,225', delta: '+6.4%', isUp: true, previous: '5,732', icon: 'i-hugeicons-user-group' },
-  { label: 'Click', value: '2,832', delta: '-15.3%', isUp: false, previous: '3,294', icon: 'i-hugeicons-cursor-01' },
-  { label: 'Orders', value: '1,224', delta: '+6.4%', isUp: true, previous: '1,106', icon: 'i-hugeicons-package' }
+  { label: 'Page Views', value: '16,431', delta: '+15.3%', isUp: true, previous: '14,253', icon: 'hugeicons:view' },
+  { label: 'Visitors', value: '6,225', delta: '+6.4%', isUp: true, previous: '5,732', icon: 'hugeicons:user-group' },
+  { label: 'Click', value: '2,832', delta: '-15.3%', isUp: false, previous: '3,294', icon: 'hugeicons:cursor-01' },
+  { label: 'Orders', value: '1,224', delta: '+6.4%', isUp: true, previous: '1,106', icon: 'hugeicons:package' }
 ]
 </script>

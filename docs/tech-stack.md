@@ -18,7 +18,8 @@
 
 Use **Nuxt UI** components for all UI elements. It's built on Tailwind CSS with the app-level color scheme configured as:
 
-- Primary: green
+- Primary: blue
+- Secondary: indigo
 - Neutral: slate
 
 ### Authentication

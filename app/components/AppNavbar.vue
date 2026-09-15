@@ -35,7 +35,7 @@ const notifications = ref<Notification[]>([
     title: 'New order received',
     description: 'Order #1024 from Jane Cooper',
     time: '2m ago',
-    icon: 'i-hugeicons-package',
+    icon: 'hugeicons:package',
     isUnread: true
   },
   {
@@ -43,7 +43,7 @@ const notifications = ref<Notification[]>([
     title: 'Payment successful',
     description: '$240.00 from Acme Inc.',
     time: '1h ago',
-    icon: 'i-hugeicons-credit-card',
+    icon: 'hugeicons:credit-card',
     isUnread: true
   },
   {
@@ -51,7 +51,7 @@ const notifications = ref<Notification[]>([
     title: 'Weekly report ready',
     description: 'Your analytics report is available',
     time: 'Yesterday',
-    icon: 'i-hugeicons-chart-01',
+    icon: 'hugeicons:chart-01',
     isUnread: false
   }
 ])
@@ -67,18 +67,18 @@ const profileItems = computed<DropdownMenuItem[][]>(() => [
     { label: user.value?.fullName ?? user.value?.primaryEmailAddress?.emailAddress ?? 'Account', type: 'label' }
   ],
   [
-    { label: 'Profile', icon: 'i-hugeicons-user' },
-    { label: 'Settings', icon: 'i-hugeicons-settings-02' },
-    { label: 'Billing', icon: 'i-hugeicons-credit-card' }
+    { label: 'Profile', icon: 'hugeicons:user' },
+    { label: 'Settings', icon: 'hugeicons:settings-02' },
+    { label: 'Billing', icon: 'hugeicons:credit-card' }
   ],
   [
-    { label: 'Help & Support', icon: 'i-hugeicons-help-circle' },
-    { label: 'Keyboard shortcuts', icon: 'i-hugeicons-keyboard', kbds: ['⌘', 'K'] }
+    { label: 'Help & Support', icon: 'hugeicons:help-circle' },
+    { label: 'Keyboard shortcuts', icon: 'hugeicons:keyboard', kbds: ['⌘', 'K'] }
   ],
   [
     {
       label: 'Sign out',
-      icon: 'i-hugeicons-logout-03',
+      icon: 'hugeicons:logout-03',
       color: 'error',
       onSelect: () => { clerk.value?.signOut() }
     }
@@ -95,7 +95,7 @@ const profileItems = computed<DropdownMenuItem[][]>(() => [
   >
     <div class="flex flex-1 items-center gap-3">
       <UButton
-        :icon="isSidebarCollapsed ? 'i-hugeicons-sidebar-right' : 'i-hugeicons-sidebar-left'"
+        :icon="isSidebarCollapsed ? 'hugeicons:sidebar-right' : 'hugeicons:sidebar-left'"
         color="neutral"
         variant="ghost"
         size="md"
@@ -105,7 +105,7 @@ const profileItems = computed<DropdownMenuItem[][]>(() => [
       <div class="w-full max-w-sm">
         <UInput
           v-model="search"
-          icon="i-hugeicons-search-01"
+          icon="hugeicons:search-01"
           placeholder="Search anything..."
           size="md"
           variant="soft"
@@ -127,7 +127,7 @@ const profileItems = computed<DropdownMenuItem[][]>(() => [
         :content="{ side: 'bottom' }"
       >
         <UButton
-          :icon="isDark ? 'i-hugeicons-moon-02' : 'i-hugeicons-sun-03'"
+          :icon="isDark ? 'hugeicons:moon-02' : 'hugeicons:sun-03'"
           color="neutral"
           variant="ghost"
           size="md"
@@ -149,7 +149,7 @@ const profileItems = computed<DropdownMenuItem[][]>(() => [
           :ui="{ base: 'font-semibold text-[10px] px-1 min-w-4 h-4' }"
         >
           <UButton
-            icon="i-hugeicons-notification-03"
+            icon="hugeicons:notification-03"
             color="neutral"
             variant="ghost"
             size="md"
