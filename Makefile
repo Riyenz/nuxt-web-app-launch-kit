@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check check-all setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed db-local db-local-setup db-local-studio dev-local
+.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check check-changed check-all setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed db-local db-local-setup db-local-studio dev-local
 
 # Default target
 help: ## Show this help message
@@ -105,6 +105,9 @@ setup-secrets: ## Sync .env CI/CD variables to GitHub Actions secrets (requires 
 
 # Combined commands
 check: lint typecheck ## Run all quality checks (lint + typecheck)
+
+check-changed: ## Fast inner loop: cached lint + only the TS projects you changed
+	pnpm run check:changed
 
 check-all: lint typecheck test-unit ## Run every check CI runs on a release PR
 

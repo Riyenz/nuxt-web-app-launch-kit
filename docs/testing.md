@@ -28,7 +28,7 @@ Anything that needs a browser, a session or a database belongs in the E2E suite 
 
 ```bash
 pnpm test:e2e:install   # once per machine: download the Chromium build
-pnpm exec prisma migrate deploy && pnpm seed
+pnpm exec prisma migrate deploy && pnpm seed && pnpm seed:check
 pnpm test:e2e
 pnpm test:e2e:ui        # Playwright's interactive runner
 ```
@@ -36,6 +36,10 @@ pnpm test:e2e:ui        # Playwright's interactive runner
 The suite runs against a dev server it starts itself (`webServer` in
 `playwright.config.ts`), and against the production build in CI — the dev server's
 on-demand compilation can't sustain concurrent projects without flaky timeouts.
+Locally Playwright uses one worker. PGlite puts every connection on one backend
+session, so parallel workers die with `08P01`. CI uses four workers against the
+Postgres service container. `pnpm seed:check` asserts the three seeded users and
+their posts after `pnpm seed`.
 
 ### Sign-in happens once, not per test
 
@@ -82,9 +86,10 @@ there is no captured session.
 
 ### Specs are grouped by the data they touch
 
-`playwright.config.ts` puts specs into projects. Each project runs with `workers: 1`, but
-the projects run concurrently. **Two specs that read or write the same seeded row must be
-in the same project**, or they will race.
+`playwright.config.ts` puts specs into projects. Each project runs with `workers: 1`.
+In CI the projects run concurrently; locally the whole suite is one worker.
+**Two specs that read or write the same seeded row must be in the same project**, or
+they will race in CI.
 
 When a new spec owns different data, add a group rather than widening an existing one.
 

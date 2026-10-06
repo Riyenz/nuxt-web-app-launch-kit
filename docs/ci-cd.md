@@ -4,12 +4,11 @@
 
 ## GitHub Actions Workflows
 
-The project uses GitHub Actions for continuous integration, database migrations, and PR database provisioning.
+The project uses GitHub Actions for continuous integration. Preview databases and migrations are applied by the Vercel build, not by a GitHub job.
 
 - `.github/workflows/ci.yml` runs lint and typecheck on every pull request, plus unit tests and a build on the release PR.
 - `.github/workflows/e2e.yml` runs the Playwright specs the diff can affect, on the release PR only.
-- `.github/workflows/db-migrate.yml` applies committed Prisma migrations after pushes to `develop` and `master`.
-- `.github/workflows/pr-neon-branch.yml` provisions a Neon branch per PR targeting `develop`, applies Prisma migrations, and updates the Vercel preview `DATABASE_URL`.
+- `.github/workflows/preview-db.yml` deletes a preview's Neon branch when its pull request closes. It does not create databases and it does not migrate.
 
 ### Triggers
 
@@ -22,16 +21,7 @@ The E2E workflow runs on pull requests into `master` only, grouped per PR but **
 in progress — the suite signs in against the shared Clerk development
 instance and cleans up in `afterEach` hooks, and a canceled runner never reaches them.
 
-The DB migrate workflow runs on:
-- Pushes to `develop`
-- Pushes to `master`
-- Manual dispatch
-
-The PR Neon workflow runs on pull request lifecycle events targeting `develop`:
-- `opened`
-- `reopened`
-- `synchronize`
-- `closed`
+`.github/workflows/preview-db.yml` runs when a pull request into `develop` or `master` closes. It deletes the Neon branch named after that pull request's git branch.
 
 ### CI Pipeline Steps
 
@@ -44,14 +34,19 @@ Only on the release PR (`develop -> master`, gated on `github.base_ref == 'maste
 
 3. **Unit tests**: `pnpm test:unit`
 4. **Build**: the production build
+5. **Lighthouse**: `lhci autorun` serves that build and audits the landing page
+
+Lighthouse asserts SEO only (`minScore: 0.9` in `lighthouserc.cjs`). Performance,
+accessibility and best-practices are collected and linked in the job log but cannot fail a
+merge, because they move with the runner's load. The build exists to give Lighthouse
+something to audit, so the two are gated together.
 
 Feature branches merge into `develop` many times a day and only need the first two. The
 expensive gates run once, on the pull request where a regression would otherwise reach
 production. Feature PRs still get a production build check from the Vercel preview
-deployment.
-
-Separately, **DB migrate** runs `prisma migrate deploy` against the develop or production
-database after the branch receives a push.
+deployment. That same build creates the preview database when the branch needs one, then
+runs `prisma migrate deploy` before `nuxt build`. Production and `develop` deploys migrate
+the database stored in Vercel. See [Per-Environment Databases](neon-database-branching.md).
 
 ### The E2E Workflow
 
@@ -60,9 +55,10 @@ diff to the specs it can actually affect. When the diff selects nothing, the job
 after selection in about 20 seconds — no build, no seed, no browsers.
 
 It runs against a Postgres service container (not Neon), migrated and seeded in the job,
-and against the production build rather than the dev server. `DB_POOL_MAX: '10'` opts out
-of the single-connection default in `app/lib/db-adapter.ts`, which exists for local PGlite
-and cannot tell the two `localhost` URLs apart.
+then checked with `pnpm seed:check`, and against the production build rather than the
+dev server. `DB_POOL_MAX: '10'` opts out of the single-connection default in
+`app/lib/db-adapter.ts`, which exists for local PGlite and cannot tell the two
+`localhost` URLs apart.
 
 There is deliberately **no `paths-ignore`**: the job is a required status check on
 `master`, and a workflow that never triggers reports nothing — leaving a docs-only PR
@@ -77,11 +73,11 @@ Full detail, including the rules table and its fallbacks, is in [Testing](testin
   - Both local and CI use pnpm for consistency
 - **Build**: only on the release PR; feature PRs rely on the Vercel preview deployment
 - **Tests**: unit tests and selected E2E specs, both on the release PR
+- **Lighthouse**: only on the release PR, and only its SEO score is a gate
 - **Required secrets**: `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `NUXT_CLERK_SECRET_KEY` for the build and E2E jobs (`make setup-secrets` syncs them from `.env`)
-- **Preview databases**: PR previews get an isolated Neon branch named `pr-<number>`
-- **Develop database**: Pushes to `develop` run migrations using `DEV_DATABASE_URL`
-- **Production database**: Pushes to `master` run migrations using `PROD_DATABASE_URL`
-- **Fork PRs**: The Neon workflow skips forked PRs because GitHub does not expose repository secrets there
+- **Preview databases**: a preview build creates a Neon branch named after the git branch; closing the pull request deletes it
+- **Develop and production**: the Vercel build migrates the `DATABASE_URL` stored for that environment
+- **Fork PRs**: the cleanup workflow skips forked PRs because GitHub does not expose repository secrets there
 
 ## Local Validation Before Push
 
@@ -122,12 +118,12 @@ See [agent-workflow.md](agent-workflow.md) for the complete workflow.
 
 ## Workflow Configuration
 
-The workflows are defined in `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`, `.github/workflows/db-migrate.yml`, and `.github/workflows/pr-neon-branch.yml`.
+The workflows are defined in `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`, and `.github/workflows/preview-db.yml`.
 
 Key configuration:
 - pnpm version is managed via the `packageManager` field
 - CI installs dependencies, then runs lint and typecheck
-- DB migration requires `DEV_DATABASE_URL` and `PROD_DATABASE_URL`
-- PR Neon provisioning requires GitHub Actions secrets for Neon and Vercel
+- Preview cleanup requires the `NEON_PROJECT_ID` and `NEON_API_KEY` GitHub Actions secrets
+- The Vercel build requires `NEON_PROJECT_ID`, `NEON_PREVIEW_API_KEY`, and a stored `DATABASE_URL` for production and for the `develop` preview
 
 See [neon-database-branching.md](neon-database-branching.md) for the full PR database setup.

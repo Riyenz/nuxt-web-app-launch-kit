@@ -1,3 +1,3 @@
 {
-  "buildCommand": "prisma generate && nuxt build"
+  "buildCommand": "node scripts/ci/vercel-build.mjs"
 }

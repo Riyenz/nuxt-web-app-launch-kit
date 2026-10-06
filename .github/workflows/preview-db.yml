@@ -1,0 +1,59 @@
+name: preview-db
+
+# Preview databases are created by the Vercel build itself (scripts/ci/vercel-build.mjs), so
+# nothing here provisions one. The old provision job wrote a branch-scoped DATABASE_URL into
+# Vercel about 80 seconds after the build had already started, which is why a first push read
+# the shared fallback and why two processes once migrated the same branch at the same time.
+#
+# This workflow only releases a slot when a pull request closes. There is no scheduled sweep:
+# nothing deletes a database on a timer or to make room. A branch pushed without a pull request
+# keeps its database until somebody removes it in the Neon console, and when all the slots are
+# taken the next build fails and names what is holding them.
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+    types:
+      - closed
+
+concurrency:
+  group: preview-db-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  release-slot:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # This job runs on Node built-ins only, so it installs no dependencies. Asking setup-node
+      # to cache pnpm here fails the job on a store path that is never created.
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The Neon branch is named after the git branch, because the Vercel build knows its git
+      # ref but not the pull request number. Both sides must derive the name the same way.
+      - name: Delete the preview database
+        env:
+          GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          node --input-type=module -e "
+          import { deletePreviewBranch } from './scripts/ci/preview-branch.mjs'
+          const name = await deletePreviewBranch(
+            process.env.NEON_PROJECT_ID,
+            process.env.NEON_API_KEY,
+            process.env.GIT_BRANCH
+          )
+          console.log(name ? \`Deleted preview database \"\${name}\"\` : 'No preview database to delete')
+          "

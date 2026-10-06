@@ -67,11 +67,22 @@ jobs:
         run: pnpm run test:unit
 
       # Also the release gate, and only there. Feature PRs into develop get their
-      # production build check from the Vercel preview deployment.
+      # production build check from the Vercel preview deployment; this build also
+      # gives Lighthouse something to audit, so the two run together or not at all.
       - name: Build
         if: github.base_ref == 'master'
         run: pnpm run build
         env:
-          NODE_OPTIONS: --max-old-space-size=4096
+          NODE_OPTIONS: --max-old-space-size=8192
+          NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NUXT_CLERK_SECRET_KEY: ${{ secrets.NUXT_CLERK_SECRET_KEY }}
+
+      # lighthouserc.cjs starts the Nitro server it just built and audits the landing page.
+      # The keys are passed again because this is a new process: the Clerk module reads them
+      # at runtime, not only during the build.
+      - name: Lighthouse CI
+        if: github.base_ref == 'master'
+        run: pnpm exec lhci autorun
+        env:
           NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           NUXT_CLERK_SECRET_KEY: ${{ secrets.NUXT_CLERK_SECRET_KEY }}

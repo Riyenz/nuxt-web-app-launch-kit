@@ -1,5 +1,7 @@
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
+import { retryPreparedStatementRace } from './prepared-statement-race'
 
 // Neon's serverless driver speaks over WebSocket/HTTP and is what production
 // uses. Anything else — a local `prisma dev` PGlite server, a plain Postgres
@@ -48,6 +50,22 @@ function resolvePostgresUrl(url: string) {
   return parsed.toString()
 }
 
+function withPreparedStatementRetry(pool: pg.Pool) {
+  const originalQuery = pool.query.bind(pool) as (...args: unknown[]) => Promise<unknown>
+
+  pool.query = function queryWithRetry(...args: unknown[]) {
+    if (typeof args[args.length - 1] === 'function') {
+      return originalQuery(...args)
+    }
+
+    return retryPreparedStatementRace(function runQuery() {
+      return originalQuery(...args)
+    })
+  } as typeof pool.query
+
+  return pool
+}
+
 export function createDbAdapter(connectionString: string | undefined = process.env.DATABASE_URL) {
   if (!connectionString) {
     throw new Error('DATABASE_URL is not set')
@@ -64,6 +82,17 @@ export function createDbAdapter(connectionString: string | undefined = process.e
   // serialized. CI opts out with DB_POOL_MAX against a real Postgres that can
   // use a real pool; a PGlite URL and a service-container URL are both
   // postgres://…@localhost, so they cannot be told apart by scheme.
+  //
+  // max: 1 only serializes queries inside one process. Local e2e still opens a
+  // second client from the Playwright helper, and those two connections share
+  // the unnamed prepared-statement slot. Retrying 08P01 is the cross-process
+  // complement: the next attempt binds after the other connection has moved on.
   const max = process.env.DB_POOL_MAX ? Number(process.env.DB_POOL_MAX) : 1
-  return new PrismaPg({ connectionString: resolvePostgresUrl(connectionString), max })
+  const pool = withPreparedStatementRetry(new pg.Pool({
+    connectionString: resolvePostgresUrl(connectionString),
+    max
+  }))
+  // @prisma/adapter-pg pins @types/pg@8.11 while this app uses 8.16. Same runtime driver.
+  const adapterPool = pool as unknown as ConstructorParameters<typeof PrismaPg>[0]
+  return new PrismaPg(adapterPool, { disposeExternalPool: true })
 }

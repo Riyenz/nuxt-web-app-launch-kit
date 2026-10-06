@@ -15,7 +15,7 @@ Before setting up, ensure you have:
 
 No database account is needed for local development — Prisma's bundled PGlite
 server provides Postgres locally. A [Neon](https://neon.tech) account is only
-required for deployed environments and CI preview databases.
+required for deployed environments and preview databases.
 
 ## Environment Variables
 

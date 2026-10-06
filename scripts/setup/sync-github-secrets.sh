@@ -31,15 +31,14 @@ while IFS= read -r line; do
   fi
 done < .env
 
+# The build and e2e jobs sign in to Clerk, and preview-db.yml deletes a Neon branch when a
+# pull request closes. Nothing else in CI needs a secret: the Vercel build reads its own
+# variables from Vercel, not from here.
 SECRETS=(
+  NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  NUXT_CLERK_SECRET_KEY
   NEON_PROJECT_ID
   NEON_API_KEY
-  NEON_PARENT_BRANCH
-  DEV_DATABASE_URL
-  PROD_DATABASE_URL
-  VERCEL_ORG_ID
-  VERCEL_PROJECT_ID
-  VERCEL_TOKEN
 )
 
 echo "Syncing secrets to GitHub Actions..."

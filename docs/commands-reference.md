@@ -14,6 +14,7 @@ All project commands in one place.
 
 ```bash
 make check               # Run both lint and typecheck
+pnpm run check:changed   # Fast inner loop: cached lint + only the affected TS projects
 pnpm run lint            # Run ESLint
 pnpm run lint:verbose    # Same, but always print the full output
 pnpm run typecheck       # Type-check the app AND tests/
@@ -27,6 +28,10 @@ them has a `:verbose` twin that skips the wrapper.
 `typecheck` runs `nuxt typecheck` **and** `tsc -p tsconfig.test.json`. Nuxt's generated
 project only covers `app/` and `server/`, so without the second pass a broken type in a
 spec would not surface until the suite ran.
+
+`check:changed` is for the inner loop, not the gate: it reads `git status`, type-checks only
+the projects your working-tree changes belong to, and reuses ESLint's cache. Run the full
+`pnpm run lint && pnpm run typecheck` before you commit — that is what CI runs.
 
 To auto-fix lint issues: `pnpm exec eslint . --fix`.
 
@@ -71,6 +76,7 @@ pnpm shot dashboard              # Screenshot a screen as the owner
 pnpm shot dashboard --responsive # Desktop and mobile in one run
 pnpm shot --list                 # Every named screen and role
 pnpm shot --stop                 # Stop the cached dev server
+pnpm shot dashboard --relabel 'Alice Johnson=>Maria Santos'   # Swap text just before the shot
 ```
 
 Prefer the `screenshot` subagent over calling this inline — see
@@ -80,11 +86,15 @@ Prefer the `screenshot` subagent over calling this inline — see
 
 ```bash
 pnpm upload <file>       # Upload a file and print a public link
+pnpm upload --prune      # Only delete the files older than 7 days
 ```
 
 Uploads to a Vercel Blob store and prints a URL that previews inline on a phone — videos
 stream, PDFs and images render, no download first. Needs `BLOB_READ_WRITE_TOKEN` in
 `.env` and the `vercel` CLI. The links are public, so ask before uploading.
+
+Every run first deletes anything in the store older than 7 days — Blob has no expiry of its
+own, and a Hobby store's 1 GB cap fills up fast. A failed cleanup never blocks the upload.
 
 ## Environment Commands
 

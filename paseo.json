@@ -2,5 +2,11 @@
   "worktree": {
     "setup": "./.paseo/setup.sh",
     "teardown": "./.paseo/teardown.sh"
+  },
+  "scripts": {
+    "dev": {
+      "type": "service",
+      "command": "PORT=$PASEO_PORT pnpm run dev"
+    }
   }
 }

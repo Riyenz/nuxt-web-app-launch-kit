@@ -13,8 +13,8 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 - **Vitest & Playwright** — Unit tests, plus an E2E suite that signs in to Clerk once and replays the session
 - **Local Postgres** — `pnpm dev:local` runs the whole app with no Neon account and no Docker
 - **`pnpm shot`** — One command screenshots any screen of the running app in seconds
-- **GitHub Actions** — CI with lint, typecheck, diff-selected E2E, and per-PR Neon database branches
-- **Vercel** — Preview deployments with isolated databases per PR
+- **GitHub Actions** — CI with lint, typecheck, and diff-selected E2E
+- **Vercel** — Preview deployments; each preview build creates its own Neon database
 
 ---
 
@@ -28,7 +28,7 @@ A modern, production-ready starter kit for building web applications with Nuxt 4
 
 No database account is needed to run locally — the database runs on your machine.
 A [Neon](https://neon.tech) account is only required for deployed environments and
-CI preview databases.
+preview databases.
 
 ### Step 1 — Create a Clerk application
 
@@ -95,26 +95,20 @@ named `pw-<worktree>`, migrated and seeded, with `.env` pointed at it — so pla
 
 ## CI/CD Setup (GitHub Actions + Vercel)
 
-The project ships with GitHub Actions workflows that run quality checks, apply database migrations on `develop` and `master`, and create an isolated Neon database branch plus Vercel preview deployment for every PR targeting `develop`. This is optional for local development but required for the full workflow.
+The project ships with GitHub Actions workflows that run quality checks. The Vercel build creates an isolated Neon database for each preview branch, migrates it, and then builds. Closing the pull request deletes that database. This is optional for local development but required for the full workflow.
 
 ### Required GitHub Actions secrets
 
-Set these at `GitHub → Settings → Secrets and variables → Actions`:
+Set these at `GitHub → Settings → Secrets and variables → Actions`. They are only used to delete a preview database when a pull request closes:
 
 | Secret | Where to get it |
 |---|---|
 | `NEON_PROJECT_ID` | Neon Console → Project → Settings → General |
 | `NEON_API_KEY` | Neon Console → Account → API Keys |
-| `NEON_PARENT_BRANCH` | Name of your base branch (default: `development`) |
-| `DEV_DATABASE_URL` | Neon connection string for the develop database |
-| `PROD_DATABASE_URL` | Neon connection string for the production database |
-| `VERCEL_ORG_ID` | Vercel → Settings → General → Team ID |
-| `VERCEL_PROJECT_ID` | Vercel → Project → Settings → General → Project ID |
-| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
 
 ### Sync secrets automatically
 
-If you add the Neon and Vercel values to your local `.env`, you can push them all to GitHub in one command:
+If you add the Neon values to your local `.env`, you can push them to GitHub in one command:
 
 ```bash
 make setup-secrets   # requires gh CLI: https://cli.github.com
@@ -126,13 +120,16 @@ Set these at `Vercel → Project → Settings → Environment Variables`:
 
 | Variable | Environments | Why |
 |---|---|---|
-| `DATABASE_URL` | Production, Preview | `vercel.json` runs `prisma generate` before `nuxt build`, and `prisma.config.ts` resolves `DATABASE_URL` eagerly — a build with none set fails with `PrismaConfigEnvError`. The PR workflow adds a per-branch Preview override on top of this baseline. |
+| `DATABASE_URL` | Production, and Preview scoped to the `develop` git branch only | Production and the `develop` preview migrate and run against this stored URL. There must be no project-wide Preview value. |
+| `NEON_PROJECT_ID` | Preview | The project the build creates its branch in |
+| `NEON_PREVIEW_API_KEY` | Preview | Project-scoped Neon API key. Not the account-wide key |
+| `NEON_PARENT_BRANCH` | Preview | Optional. Defaults to `development` |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Production, Preview | Required at runtime by Clerk |
 | `NUXT_CLERK_SECRET_KEY` | Production, Preview | Required at runtime by Clerk |
 
 ### Neon parent branch
 
-The PR workflow forks a new database branch from a shared `development` branch for each PR into `develop`. Create that branch in the Neon console before the first PR runs — local development no longer touches Neon, so nothing creates it automatically.
+A preview build forks a database branch from a shared `development` branch. Create that branch in the Neon console before the first preview deploys — local development no longer touches Neon, so nothing creates it automatically. See [Per-Environment Databases](docs/neon-database-branching.md).
 
 ---
 
@@ -233,23 +230,14 @@ make help            # List all available commands
 | `DATABASE_URL` | Postgres connection string. Blank for local dev — PGlite supplies its own |
 | `DIRECT_URL` | Unpooled endpoint for Prisma Migrate; only needed with Neon's `-pooler` host |
 
-### Optional (CI/CD PR preview databases)
+### Optional (preview databases)
 
 | Variable | Default | Description |
 |---|---|---|
-| `NEON_PROJECT_ID` | — | Neon project ID for PR branching |
-| `NEON_API_KEY` | — | Neon API key for branch management |
-| `NEON_PARENT_BRANCH` | `development` | Branch to fork PR databases from |
-
-### CI/CD only (set as GitHub Actions secrets, not in .env)
-
-| Variable | Description |
-|---|---|
-| `DEV_DATABASE_URL` | Develop database connection string for migration deploys |
-| `PROD_DATABASE_URL` | Production database connection string for migration deploys |
-| `VERCEL_ORG_ID` | Vercel team/org ID |
-| `VERCEL_PROJECT_ID` | Vercel project ID |
-| `VERCEL_TOKEN` | Vercel token with env-variable permissions |
+| `NEON_PROJECT_ID` | — | Neon project ID. GitHub uses it to delete a preview branch; Vercel uses it to create one |
+| `NEON_API_KEY` | — | Neon API key for the GitHub cleanup workflow |
+| `NEON_PREVIEW_API_KEY` | — | Project-scoped Neon API key for the Vercel preview build |
+| `NEON_PARENT_BRANCH` | `development` | Neon branch a preview database is forked from |
 
 ---
 

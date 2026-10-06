@@ -70,6 +70,7 @@ Options
                        click:<selector>   text:<visible text>   fill:<selector>=<value>
                        press:<key>        type:<text>           hover:<selector>
                        wait:<selector>    sleep:<ms>            scroll:<selector>
+  --relabel <a=>b>   replace the text a with b just before the shot; repeatable
   --name <basename>  output file name
   --out <dir>        output directory (default: .shots)
   --upload           upload each PNG and print a public link
@@ -116,6 +117,7 @@ function parseArgs(argv) {
     isUpload: false,
     isFresh: false,
     clip: null,
+    relabels: [],
     name: null,
     outDir: SHOT_DIR,
     port: null,
@@ -161,6 +163,14 @@ function parseArgs(argv) {
       case '--do':
         options.actions.push(next())
         break
+      case '--relabel':
+      {
+        const pair = next()
+        const arrow = pair.indexOf('=>')
+        if (arrow === -1) fail(`--relabel wants <from>=><to>, got "${pair}"`)
+        options.relabels.push([pair.slice(0, arrow), pair.slice(arrow + 2)])
+        break
+      }
       case '--name':
         options.name = next()
         break
@@ -523,6 +533,31 @@ function upload(file) {
   return new Promise(resolve => result.on('exit', resolve))
 }
 
+// Swaps one string for another in every text node, for a capture that has to carry a
+// chosen identity rather than the seed's — a hand-out or a mockup where the seeded name
+// and its +clerk_test address would be wrong. It runs after the actions and just before
+// the shot, so text a click revealed is covered too.
+async function applyRelabels(page, relabels) {
+  if (relabels.length === 0) return
+  await page.evaluate((pairs) => {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      for (const [from, to] of pairs) {
+        if (node.nodeValue.includes(from)) node.nodeValue = node.nodeValue.replaceAll(from, to)
+      }
+    }
+
+    // A pre-filled field holds its text in a property rather than a text node, so the
+    // walk above never sees it.
+    for (const field of document.querySelectorAll('input, textarea')) {
+      for (const [from, to] of pairs) {
+        if (field.value?.includes(from)) field.value = field.value.replaceAll(from, to)
+      }
+    }
+  }, relabels)
+}
+
 async function captureTarget(browser, target, options, baseURL) {
   const total = startClock()
   const phases = { 'sign-in': 0, 'open': 0, 'actions': 0, 'shot': 0 }
@@ -552,6 +587,8 @@ async function captureTarget(browser, target, options, baseURL) {
     await runAction(page, action)
   }
   phases.actions = actionsClock()
+
+  await applyRelabels(page, options.relabels)
 
   const shotClock = startClock()
   mkdirSync(path.dirname(target.file), { recursive: true })

@@ -108,16 +108,17 @@ async function main() {
     }
   }
 
-  console.log(`\n${BOLD}Optional (CI/CD PR preview databases)${RESET}`)
+  console.log(`\n${BOLD}Optional (preview databases)${RESET}`)
 
   const neonProjectId = env.NEON_PROJECT_ID
   const neonApiKey = env.NEON_API_KEY
+  const neonPreviewApiKey = env.NEON_PREVIEW_API_KEY
   const neonParentBranch = env.NEON_PARENT_BRANCH || 'development'
 
   if (!neonProjectId || !neonApiKey) {
     warn(
-      'Neon branching not configured',
-      'Set NEON_PROJECT_ID and NEON_API_KEY to enable PR preview databases (local dev uses PGlite and needs neither)'
+      'Neon cleanup not configured',
+      'Set NEON_PROJECT_ID and NEON_API_KEY so a closed pull request can release its preview database (local dev uses PGlite and needs neither)'
     )
   } else {
     pass(`NEON_PROJECT_ID (${neonProjectId})`)
@@ -134,18 +135,13 @@ async function main() {
     }
   }
 
-  const vercelVars = ['VERCEL_ORG_ID', 'VERCEL_PROJECT_ID', 'VERCEL_TOKEN']
-  const vercelSet = vercelVars.filter(v => env[v])
-  if (vercelSet.length === 0) {
+  if (!neonPreviewApiKey) {
     warn(
-      'Vercel not configured',
-      'Add VERCEL_ORG_ID, VERCEL_PROJECT_ID, VERCEL_TOKEN as GitHub Actions secrets for PR preview deployments'
+      'NEON_PREVIEW_API_KEY not set',
+      'The Vercel preview build needs a project-scoped Neon API key. Local dev does not.'
     )
-  } else if (vercelSet.length < vercelVars.length) {
-    const missing = vercelVars.filter(v => !env[v])
-    warn(`Vercel partially configured — missing: ${missing.join(', ')}`, 'All 3 vars needed for PR preview deployments')
   } else {
-    pass('Vercel configured (VERCEL_ORG_ID, VERCEL_PROJECT_ID, VERCEL_TOKEN)')
+    pass('NEON_PREVIEW_API_KEY')
   }
 
   console.log('')

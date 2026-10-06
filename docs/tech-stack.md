@@ -4,13 +4,27 @@
 
 ## Core Stack
 
-- **Framework**: Nuxt 3 (with Nuxt 4 compatibility)
+- **Framework**: Nuxt 4 (`~4.4.8`), with `@nuxt/schema` declared alongside it
+- **Node**: 22.13 or newer (`engines`), the version CI and Vercel run
 - **UI Library**: Nuxt UI (with Tailwind CSS)
 - **Authentication**: Clerk (@clerk/nuxt)
 - **Database ORM**: Prisma with PostgreSQL (Neon adapter)
 - **Package Manager**: pnpm
 - **Linting**: ESLint with Nuxt ESLint module
 - **Type Checking**: TypeScript with vue-tsc
+
+### Why `@nuxt/schema` is a direct dependency
+
+`@nuxt/ui` and `@clerk/nuxt` each depend on an exact `@nuxt/schema` of their own (4.3.1 at the
+time of writing). `.npmrc` sets `shamefully-hoist=true`, so only one copy can sit in the
+top-level `node_modules`, and pnpm was hoisting theirs instead of the one Nuxt ships with.
+The module types Nuxt generates in `.nuxt/` then augment the wrong copy, and
+`nuxt.config.ts` fails with `TS2349: This expression is not callable. Type
+'DefineNuxtConfig' has no call signatures`.
+
+A direct dependency always wins the top-level slot, so declaring `@nuxt/schema` pins it to
+Nuxt's own version and keeps every config key type-checked. **Bump the two together** — move
+`nuxt` without `@nuxt/schema` and the error comes back on the next install.
 
 ## When to Use Each Technology
 

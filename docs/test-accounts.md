@@ -24,6 +24,7 @@ creating their own, so a read-only spec costs nothing to set up:
 
 The constants are exported from `tests/e2e/helpers/test-data.ts` — import them instead of
 retyping the strings, so a seed change breaks the build rather than the suite.
+`pnpm seed:check` asserts the same rows after seeding.
 
 Rows a spec creates itself are named by convention (`e2e:` post titles, `e2e+` emails) so
 `deleteTestArtifacts()` can clean them up without touching seeded data.

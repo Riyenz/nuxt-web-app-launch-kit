@@ -51,6 +51,7 @@ pnpm shot dashboard --upload                   # capture, then print a phone lin
 | `--full` | Full page instead of the viewport |
 | `--clip <selector>` | Screenshot one element, e.g. `--clip "[role=dialog]"` |
 | `--do <action>` | Act before the shot; repeatable, runs in order |
+| `--relabel <a=>b>` | Replace the text `a` with `b` just before the shot; repeatable |
 | `--name <basename>` | Output file name |
 | `--out <dir>` | Output directory, default `.shots` |
 | `--upload` | Upload each PNG and print a public link (see `pnpm upload`) |
@@ -66,6 +67,16 @@ pnpm shot dashboard --upload                   # capture, then print a phone lin
 ```bash
 pnpm shot dashboard --do "click:button[aria-label='Export']" --clip "[role=dialog]"
 pnpm shot dashboard --do "text:Last 30 days" --name range-menu
+```
+
+### `--relabel`
+
+Swaps text in every text node and pre-filled field after the actions and just before the
+shot, so text a click revealed is covered too. For a hand-out or mockup where the seeded
+name and its `+clerk_test` address would be wrong:
+
+```bash
+pnpm shot dashboard --relabel 'Alice Johnson=>Maria Santos' --relabel 'alice@example.com=>maria@tindahan.ph'
 ```
 
 ## What it costs

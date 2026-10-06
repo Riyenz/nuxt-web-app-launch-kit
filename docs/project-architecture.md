@@ -23,7 +23,8 @@
 ├── prisma/                       # Database schema and migrations
 │   ├── schema.prisma             # Database schema definition
 │   ├── migrations/               # Migration history
-│   └── seed.ts                   # Database seed script
+│   ├── seed.ts                   # Database seed script
+│   └── seed-integrity.ts         # Asserts the seed's own invariants
 ├── public/                       # Static assets
 ├── docs/                         # Documentation files
 ├── nuxt.config.ts                # Nuxt configuration

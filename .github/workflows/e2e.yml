@@ -94,14 +94,19 @@ jobs:
       - name: Build app
         if: steps.select.outputs.is_required == 'true'
         env:
-          NODE_OPTIONS: --max-old-space-size=4096
+          NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm run build
 
+      # deploy-migrate.mjs is the same migration path the Vercel build uses, so a migration
+      # that only fails under it fails here too. Its Neon wake-up ping is skipped for a
+      # localhost URL, and the advisory-lock retry costs nothing when there is no contention.
+      # seed:check then asserts the seed's own invariants (three users and their posts).
       - name: Migrate and seed
         if: steps.select.outputs.is_required == 'true'
         run: |
-          pnpm exec prisma migrate deploy
+          pnpm exec node scripts/ci/deploy-migrate.mjs
           pnpm run seed
+          pnpm seed:check
 
       # Playwright treats the listed spec paths as filters; the auth setup project
       # still runs first because the filtered projects declare it as a dependency.
