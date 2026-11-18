@@ -1,2 +1,5 @@
 pnpm run env:check
+if git diff --cached --name-only | grep -q '^prisma/migrations/'; then
+  node scripts/ci/check-migrations.mjs
+fi
 pnpm run lint && pnpm run typecheck

@@ -1,5 +1,11 @@
 import { spawnSync } from 'node:child_process'
+import { cpSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { neon } from '@neondatabase/serverless'
+
+import { listContractMigrations, MIGRATIONS_DIR } from '../migration-phases.mjs'
 
 const MAX_ATTEMPTS = 5
 const BASE_DELAY_MS = 2000
@@ -74,12 +80,95 @@ async function runMigrateDeploy() {
   }
 }
 
+// The deployment serving production lists the contract migrations it was built with
+// (server/api/cron/contract-migrations.get.ts). Any answer but a list means none are safe yet.
+export async function readLiveContracts(env = process.env, fetchImpl = fetch) {
+  const host = env.VERCEL_PROJECT_PRODUCTION_URL
+  const productionUrl = host ? `https://${host}` : env.APP_URL
+  const secret = env.CRON_SECRET
+
+  if (!productionUrl || !secret) {
+    console.warn('No production URL or no CRON_SECRET: every contract migration waits')
+    return []
+  }
+
+  try {
+    const response = await fetchImpl(new URL('/api/cron/contract-migrations', productionUrl), {
+      headers: { authorization: `Bearer ${secret}` },
+      signal: AbortSignal.timeout(10_000)
+    })
+
+    if (!response.ok) {
+      console.warn(`Production answered ${response.status} for its contract migrations: every contract migration waits`)
+      return []
+    }
+
+    const body = await response.json()
+    return Array.isArray(body?.contracts) ? body.contracts : []
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn(`Could not ask production for its contract migrations (${message}): every contract migration waits`)
+    return []
+  }
+}
+
+export function findWaitingContracts(contracts, liveContracts) {
+  const live = new Set(liveContracts)
+
+  return contracts.filter(function isWaiting(name) {
+    return !live.has(name)
+  })
+}
+
+// Prisma applies what it finds in the folder and skips an applied migration it cannot see, so a
+// copy without the waiting folders migrates everything else.
+export function copyMigrationsWithout(dir, waiting) {
+  const waitingFolders = new Set(waiting.map(function toPath(name) {
+    return resolve(dir, name)
+  }))
+  const copy = join(mkdtempSync(join(tmpdir(), 'migrations-')), 'migrations')
+
+  cpSync(dir, copy, {
+    recursive: true,
+    filter: function isApplied(source) {
+      return !waitingFolders.has(resolve(source))
+    }
+  })
+
+  return copy
+}
+
+// A contract migration removes what the previous release reads, so it runs only once the release
+// serving production contains it.
+async function holdBackContracts() {
+  const contracts = listContractMigrations()
+
+  if (contracts.length === 0) {
+    return
+  }
+
+  const waiting = findWaitingContracts(contracts, await readLiveContracts())
+
+  if (waiting.length === 0) {
+    return
+  }
+
+  console.log(`Waiting for a later deploy (production does not contain them yet): ${waiting.join(', ')}`)
+  process.env.PRISMA_MIGRATIONS_PATH = copyMigrationsWithout(MIGRATIONS_DIR, waiting)
+}
+
 async function main() {
-  await wakeDatabase()
+  await Promise.all([
+    wakeDatabase(),
+    process.env.VERCEL_ENV === 'production' ? holdBackContracts() : null
+  ])
   await runMigrateDeploy()
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
+}

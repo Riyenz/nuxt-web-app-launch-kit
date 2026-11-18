@@ -14,7 +14,8 @@ const directUrl = process.env.DIRECT_URL || process.env.DATABASE_URL?.replace('-
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
-    path: 'prisma/migrations'
+    // A production deploy points this at a copy without the contract migrations that must wait.
+    path: process.env.PRISMA_MIGRATIONS_PATH || 'prisma/migrations'
   },
   datasource: {
     url: env('DATABASE_URL'),

@@ -1,3 +1,5 @@
+import { listContractMigrations } from './scripts/migration-phases.mjs'
+
 if (!process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
   process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 }
@@ -70,7 +72,10 @@ export default defineNuxtConfig({
     // process.env.DATABASE_URL: baking that would put the production password in the build
     // output and in Vercel's build cache, where a rotation cannot reach it.
     // See scripts/ci/vercel-build.mjs and server/plugins/00-database-url.ts.
-    databaseUrl: process.env.PREVIEW_DATABASE_URL || ''
+    databaseUrl: process.env.PREVIEW_DATABASE_URL || '',
+    // The contract migrations this build contains. The next production deploy reads them from
+    // /api/cron/contract-migrations and applies only those. See docs/prisma-workflow.md.
+    contractMigrations: listContractMigrations()
   },
 
   routeRules: {

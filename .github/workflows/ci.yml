@@ -50,6 +50,12 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      # Expand and contract (docs/prisma-workflow.md): master is the release a deploy migrates under.
+      - name: Migrations keep production working
+        run: |
+          git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+          node scripts/ci/check-migrations.mjs origin/master
+
       # prisma generate was removed from postinstall, so the generated client
       # must be built explicitly before anything that imports it typechecks.
       - name: Generate Prisma Client
