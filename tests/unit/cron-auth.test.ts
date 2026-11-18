@@ -1,7 +1,7 @@
-/// <reference path="../../.nuxt/types/nitro-imports.d.ts" />
-// The handlers below use Nitro's auto-imports, which only this reference declares for tsconfig.test.json.
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createError, type H3Event } from 'h3'
+// The handlers below use Nitro's auto-imports, which only this file declares for tsconfig.test.json.
+import type {} from '../../.nuxt/types/nitro-imports'
 
 interface TestEvent {
   path: string
