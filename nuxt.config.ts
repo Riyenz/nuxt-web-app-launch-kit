@@ -6,6 +6,11 @@ if (!process.env.NUXT_CLERK_SECRET_KEY && process.env.CLERK_SECRET_KEY) {
   process.env.NUXT_CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY
 }
 
+// The browser sends analytics to this host: PostHog's own by default, or your reverse proxy
+// (docs/analytics.md). posthog-js also loads its recorder from PostHog's asset hosts.
+const posthogHost = process.env.NUXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
+const posthogOrigins = [...new Set([new URL(posthogHost).origin, 'https://*.i.posthog.com'])].join(' ')
+
 // Baseline Content-Security-Policy for the authenticated app. Shipped as report-only (see
 // securityHeaders) so violations are only logged and nothing is blocked: Clerk and Nuxt both
 // rely on inline scripts/styles and third-party origins that have to be confirmed against
@@ -17,11 +22,11 @@ const contentSecurityPolicyReportOnly = [
   'object-src \'none\'',
   'frame-ancestors \'none\'',
   'form-action \'self\'',
-  'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com',
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com ${posthogOrigins}`,
   'style-src \'self\' \'unsafe-inline\'',
   'img-src \'self\' data: blob: https://img.clerk.com https://*.clerk.com',
   'font-src \'self\' data:',
-  'connect-src \'self\' https://*.clerk.accounts.dev https://*.clerk.com',
+  `connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.com ${posthogOrigins}`,
   'worker-src \'self\' blob:',
   'frame-src \'self\' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com'
 ].join('; ')
@@ -70,7 +75,16 @@ export default defineNuxtConfig({
     // process.env.DATABASE_URL: baking that would put the production password in the build
     // output and in Vercel's build cache, where a rotation cannot reach it.
     // See scripts/ci/vercel-build.mjs and server/plugins/00-database-url.ts.
-    databaseUrl: process.env.PREVIEW_DATABASE_URL || ''
+    databaseUrl: process.env.PREVIEW_DATABASE_URL || '',
+    public: {
+      // The product name, also the server's log service name.
+      appName: process.env.NUXT_PUBLIC_APP_NAME || 'Launch Kit',
+      // Set only in Vercel's production environment, so previews, CI and local builds send
+      // nothing and test traffic never lands in the real project. See docs/analytics.md.
+      posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY || '',
+      posthogHost,
+      posthogUiHost: process.env.NUXT_PUBLIC_POSTHOG_UI_HOST || ''
+    }
   },
 
   routeRules: {
@@ -79,6 +93,22 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-01-15',
+
+  nitro: {
+    experimental: {
+      // Lets server/plugins/posthog.ts find the request behind a console.error, so the log links
+      // to that person's session replay.
+      asyncContext: true
+    }
+  },
+
+  vite: {
+    optimizeDeps: {
+      // Imported only from a client plugin, so Vite's first scan misses it, re-bundles on the
+      // first visit and reloads the page in dev, which can cut a Clerk sign-in short.
+      include: ['posthog-js']
+    }
+  },
 
   eslint: {
     config: {
