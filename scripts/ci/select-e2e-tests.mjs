@@ -69,6 +69,18 @@ const RULES = [
     specs: AUTH_SPECS
   },
   {
+    name: 'public pages and SEO',
+    patterns: [
+      /^app\/pages\/(terms|privacy|support)\.vue$/,
+      /^app\/layouts\/default\.vue$/,
+      /^app\/composables\/usePageSeo\.ts$/,
+      /^server\/routes\//,
+      /^server\/utils\/seo-files\.ts$/,
+      /^shared\/(site|structured-data)\.ts$/
+    ],
+    specs: ['tests/e2e/public-pages.spec.ts']
+  },
+  {
     name: 'users API',
     patterns: [
       /^server\/api\/users\.get\.ts$/
