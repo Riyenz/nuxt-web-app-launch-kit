@@ -76,8 +76,14 @@ export default defineNuxtConfig({
     // output and in Vercel's build cache, where a rotation cannot reach it.
     // See scripts/ci/vercel-build.mjs and server/plugins/00-database-url.ts.
     databaseUrl: process.env.PREVIEW_DATABASE_URL || '',
+    // Set at runtime as NUXT_RESEND_API_KEY, NUXT_RESEND_FROM_ADDRESS and NUXT_APP_URL, so the
+    // key never sits in the build output. Email is sent only from a production build with all
+    // three, and never while the app URL is localhost. See docs/email.md.
+    resendApiKey: '',
+    resendFromAddress: '',
+    appUrl: '',
     public: {
-      // The product name, also the server's log service name.
+      // The product name in emails and in the server's log service name.
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'Launch Kit',
       // Set only in Vercel's production environment, so previews, CI and local builds send
       // nothing and test traffic never lands in the real project. See docs/analytics.md.
