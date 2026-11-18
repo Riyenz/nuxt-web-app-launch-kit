@@ -73,6 +73,21 @@
         </p>
       </template>
 
+      <nav
+        aria-label="Legal"
+        class="flex items-center gap-6 text-sm"
+      >
+        <ULink to="/terms">
+          Terms
+        </ULink>
+        <ULink to="/privacy">
+          Privacy
+        </ULink>
+        <ULink to="/support">
+          Support
+        </ULink>
+      </nav>
+
       <template #right>
         <UButton
           to="https://github.com/Riyenz/nuxt-web-app-launch-kit"

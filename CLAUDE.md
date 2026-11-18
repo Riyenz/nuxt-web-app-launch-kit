@@ -25,6 +25,7 @@ Read the appropriate documentation file based on your task:
 - **[App Screenshots](docs/screenshots.md)** - Screenshotting a change in the running app with `pnpm shot`
 - **[Per-Environment Databases](docs/neon-database-branching.md)** - Local PGlite for worktrees, Neon branches for PR previews
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
+- **[Site Config, SEO and Legal Pages](docs/seo.md)** - Product name and URL, page meta tags, sitemap, link preview image, legal templates
 
 ## Quick Start
 

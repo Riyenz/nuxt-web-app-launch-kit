@@ -1,4 +1,4 @@
-.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot install clean check check-changed check-all setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed db-local db-local-setup db-local-studio dev-local
+.PHONY: dev build preview lint lint-fix typecheck test test-unit test-e2e shot storybook storybook-build install clean check check-changed check-all setup help init doctor setup-secrets prisma-generate prisma-migrate prisma-studio prisma-reset prisma-deploy prisma-seed db-local db-local-setup db-local-studio dev-local
 
 # Default target
 help: ## Show this help message
@@ -51,6 +51,12 @@ test-e2e: ## Run the Playwright end-to-end suite
 
 shot: ## Screenshot a screen, e.g. make shot SCREEN=dashboard
 	pnpm shot $(SCREEN)
+
+storybook: ## Start Storybook on port 6006
+	pnpm run storybook
+
+storybook-build: ## Build the static Storybook
+	pnpm run storybook:build
 
 # Local database (PGlite — no Neon account, no Docker)
 db-local: ## Start the local Postgres server (keep running)

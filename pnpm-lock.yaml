@@ -63,6 +63,9 @@ importers:
       '@storybook-vue/nuxt':
         specifier: 9.0.1
         version: 9.0.1(5c729d68f8c41a7724961ff9f65bea13)
+      '@storybook/addon-a11y':
+        specifier: ^9.0.5
+        version: 9.0.5(storybook@9.0.5(@testing-library/dom@10.4.1))
       '@storybook/addon-docs':
         specifier: ^9.0.5
         version: 9.0.5(@types/react@19.2.14)(storybook@9.0.5(@testing-library/dom@10.4.1))
@@ -2428,6 +2431,11 @@ packages:
       storybook: ~9.0.5
       vite: ^5.2.0 || ^6.0.0 || ^7.0.0
       vue: ^3.4.0
+
+  '@storybook/addon-a11y@9.0.5':
+    resolution: {integrity: sha512-DI2bB/bo9g0PHqXvgaLKZnP04Ni0qDWBwS6Xu8wMDnITGaDbDQl06gLzLsp+SbCgm0QuumpTp39lOyuMbEmyHA==}
+    peerDependencies:
+      storybook: ^9.0.5
 
   '@storybook/addon-docs@9.0.5':
     resolution: {integrity: sha512-1MjbYmagssswSmvmTIfw4A/4z1wW8kBkIxGVyEXLzYHyX15eRbaY4q77P6oTm3pISdFSUJ/qsFBVlkzJu3LB7A==}
@@ -11239,6 +11247,12 @@ snapshots:
       - vti
       - vue-tsc
       - yaml
+
+  '@storybook/addon-a11y@9.0.5(storybook@9.0.5(@testing-library/dom@10.4.1))':
+    dependencies:
+      '@storybook/global': 5.0.0
+      axe-core: 4.14.0
+      storybook: 9.0.5(@testing-library/dom@10.4.1)
 
   '@storybook/addon-docs@9.0.5(@types/react@19.2.14)(storybook@9.0.5(@testing-library/dom@10.4.1))':
     dependencies:

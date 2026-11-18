@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Link preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=block">
+<style>
+  /* 1200x630 is the size Facebook, LinkedIn, Slack and X all render without cropping. Feeds
+     scale the card down hard, so the type is oversized. */
+  * { box-sizing: border-box; margin: 0; }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    font-family: Outfit, system-ui, sans-serif;
+    color: #fff;
+    background: #0f2028;
+  }
+
+  .og {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    padding: 72px 88px;
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(640px 420px at 88% 8%, rgb(96 165 250 / 0.30), transparent 65%),
+      radial-gradient(560px 380px at 4% 100%, rgb(59 130 246 / 0.22), transparent 62%),
+      linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px) 0 0 / 48px 48px,
+      #0f2028;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgb(96 165 250 / 0.22);
+    color: #bfdbfe;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .name {
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    margin-top: auto;
+    max-width: 960px;
+    font-size: 68px;
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  /* render.ts wraps each word, so a line never breaks at the hyphen inside one. */
+  h1 span { white-space: nowrap; }
+
+  .host {
+    margin-top: 36px;
+    font-size: 26px;
+    color: rgb(255 255 255 / 0.6);
+  }
+</style>
+</head>
+<body>
+  <div class="og">
+    <div class="brand">
+      <span class="mark" data-site="initial"></span>
+      <span class="name" data-site="name"></span>
+    </div>
+    <h1 data-site="title"></h1>
+    <p class="host" data-site="host"></p>
+  </div>
+</body>
+</html>

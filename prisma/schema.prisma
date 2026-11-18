@@ -25,3 +25,12 @@ model Post {
   authorId  Int
   author    User    @relation(fields: [authorId], references: [id])
 }
+
+// One row per failed attempt, keyed "<scope>:<key>". See server/utils/rate-limit.ts.
+model RateLimitFailure {
+  id       String   @id @default(cuid())
+  key      String
+  failedAt DateTime @default(now())
+
+  @@index([key, failedAt])
+}

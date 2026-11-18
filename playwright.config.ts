@@ -10,6 +10,7 @@ const isCI = !!process.env.CI
 // widening an existing one when a new spec owns different data.
 const READ_ONLY_GROUP = [
   'dashboard.spec.ts',
+  'public-pages.spec.ts',
   'users-api.spec.ts'
 ]
 const LOGIN_GROUP = ['login.spec.ts']

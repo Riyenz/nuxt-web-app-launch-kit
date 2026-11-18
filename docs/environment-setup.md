@@ -86,6 +86,7 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 | `DATABASE_URL` | Only for non-local databases | `postgresql://` | [Neon Console](https://console.neon.tech) → Project → Connection Details |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | `pk_test_` or `pk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
 | `NUXT_CLERK_SECRET_KEY` | Yes | `sk_test_` or `sk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
+| `NUXT_PUBLIC_SITE_URL` | No | `https://` | Your production domain. Unset, Vercel builds use the project's production domain. See [SEO](seo.md#the-site-url) |
 
 ## Initial Setup Steps
 
