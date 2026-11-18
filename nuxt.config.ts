@@ -1,4 +1,4 @@
-import { publicPages, resolveSiteUrl } from './shared/site'
+import { resolveSiteUrl } from './shared/site'
 
 if (!process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
   process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
@@ -80,11 +80,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { prerender: false },
-    '/app/**': { ssr: false, prerender: false, headers: securityHeaders },
-    ...Object.fromEntries(publicPages.filter(page => page.path !== '/').map(page => [page.path, { prerender: true }])),
-    '/robots.txt': { prerender: true },
-    '/sitemap.xml': { prerender: true },
-    '/llms.txt': { prerender: true }
+    '/app/**': { ssr: false, prerender: false, headers: securityHeaders }
   },
 
   compatibilityDate: '2025-01-15',

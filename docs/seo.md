@@ -18,7 +18,7 @@ surface below reads these two, so renaming the product is a one-file change foll
 | `app/composables/usePageSeo.ts` | Title suffix, default description, preview image |
 | `app/pages/{terms,privacy,support}.vue` | Name, contact email, legal entity |
 | `scripts/og/render.ts` | Name, title, URL host |
-| `nuxt.config.ts` | Prerenders every non-home entry in `publicPages` and the three files |
+| `nuxt.config.ts` | Sets `runtimeConfig.public.siteUrl` from `resolveSiteUrl()` |
 
 The builders behind the three routes live in `server/utils/seo-files.ts` and are unit tested in
 `tests/unit/seo-files.test.ts`.
@@ -33,7 +33,10 @@ picks the first of:
 3. `https://$VERCEL_PROJECT_PRODUCTION_URL`, which Vercel sets on every build, previews included.
 4. `site.productionUrl`.
 
-The sitemap and `robots.txt` are prerendered, so they carry the URL from build time.
+Nothing here is prerendered. Prerendering runs every request through Clerk's server middleware
+at build time, which fails in a build that has no Clerk keys, as CI's does. The pages and files
+render per request instead, so setting `NUXT_PUBLIC_SITE_URL` at runtime takes effect without a
+rebuild.
 
 ## Add a public page
 
@@ -51,7 +54,7 @@ The sitemap and `robots.txt` are prerendered, so they carry the URL from build t
    JSON-LD. With no arguments it uses the site title and description, and on `/` it adds the
    `WebSite` block search engines read the site name from. Pass `structuredData` for anything
    else, such as an FAQ block.
-2. Add the page to `publicPages`. The sitemap, `llms.txt` and prerendering pick it up.
+2. Add the page to `publicPages`. The sitemap and `llms.txt` pick it up.
 
 ## Link preview image
 
