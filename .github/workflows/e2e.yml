@@ -1,33 +1,38 @@
 name: e2e
 
-# Single E2E gate, on the release pull request only (develop -> master). The full
-# Playwright suite is expensive, so rather than always paying for it,
-# scripts/ci/select-e2e-tests.mjs maps the PR diff to the specs it can affect and
-# falls back to the full suite for shared or unclassified runtime files.
-# When the diff touches nothing with E2E coverage, the job ends after selection —
-# no build, no seed, no browsers. The Postgres service container still starts
-# during job setup (a few seconds); that is cheaper than making the service
-# conditional.
+# Single E2E gate, on the release pull request only (develop -> master). It runs the core list
+# from tests/e2e/suites.mjs and nothing else. Every other spec is a developer's job before the
+# pull request exists.
 #
-# Deliberately no paths-ignore: this job is a required status check on master, and a
-# workflow that never triggers reports nothing, leaving a docs-only PR pending forever
-# with no way to merge it. The selector's early exit already makes those runs cheap
-# (~20s), so filtering by path here would buy nothing and cost mergeability.
+# scripts/ci/e2e-gate.mjs answers one question: can this diff change how the app behaves? When
+# it cannot, the job ends after the gate: no build, no seed, no browsers. The Postgres service
+# container still starts during job setup (a few seconds); that is cheaper than making the
+# service conditional.
+#
+# No step talks to apt on a normal run. `playwright install --with-deps` did, and a slow
+# azure.archive.ubuntu.com mirror can hold that step for minutes. The runner already has every
+# library Chromium needs, because its preinstalled Google Chrome package depends on the same ones.
+#
+# Deliberately no paths-ignore: this job is a required status check on master, and a workflow
+# that never triggers reports nothing, leaving a docs-only PR pending forever with no way to
+# merge it. The gate's early exit already makes those runs cheap (~20s), so filtering by path
+# here would buy nothing and cost mergeability.
 on:
   pull_request:
     branches:
       - master
 
-# Serialize runs per pull request. Don't cancel an in-flight run: the suite signs in
-# against the shared Clerk development instance and cleans up the rows it creates in
-# Playwright's afterEach hooks. A canceled runner never reaches them.
+# Serialize runs per pull request. Don't cancel an in-flight run: the suite signs in against the
+# shared Clerk development instance and cleans up the rows it creates in Playwright's afterEach
+# hooks. A canceled runner never reaches them.
 concurrency:
   group: e2e-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest became 26.04, which Playwright 1.59 can't install Chromium on.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     services:
@@ -53,46 +58,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Full history so the selector can diff the PR's merge base against its head.
+          # Full history so the gate can diff the PR's merge base against its head.
           fetch-depth: 0
 
-      - name: Select E2E specs for the PR diff
-        id: select
+      - name: Decide whether the PR diff needs E2E
+        id: gate
         run: |
-          node scripts/ci/select-e2e-tests.mjs \
+          node scripts/ci/e2e-gate.mjs \
             --base ${{ github.event.pull_request.base.sha }} \
             --head ${{ github.event.pull_request.head.sha }} \
             --spec-list e2e-specs.txt \
             --github-output "$GITHUB_OUTPUT"
 
       - name: Install pnpm
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         uses: pnpm/action-setup@v4
 
       - name: Install Node.js
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         run: pnpm exec prisma generate
 
-      - name: Install Playwright browsers
-        if: steps.select.outputs.is_required == 'true'
-        run: pnpm exec playwright install --with-deps chromium
+      # The browser only, from Playwright's CDN (~12s). No `--with-deps`: the runner's Google
+      # Chrome package already pulled in every library Chromium links against.
+      - name: Install Playwright Chromium
+        if: steps.gate.outputs.is_required == 'true'
+        run: pnpm exec playwright install chromium
+
+      # A safety net for a runner image that one day ships without one of those libraries:
+      # Playwright refuses to launch and names it, and only then does apt run, capped so a slow
+      # mirror fails the job in minutes instead of holding it for a quarter of an hour.
+      - name: Check Chromium launches
+        if: steps.gate.outputs.is_required == 'true'
+        timeout-minutes: 6
+        run: |
+          if ! node -e "require('@playwright/test').chromium.launch().then(b => b.close())"; then
+            pnpm exec playwright install-deps chromium
+          fi
 
       # The suite runs against this production build (playwright.config.ts serves
       # .output/server/index.mjs in CI): the dev server's on-demand compilation
       # can't sustain concurrent Playwright projects and makes timings flaky.
       - name: Build app
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm run build
@@ -102,7 +120,7 @@ jobs:
       # localhost URL, and the advisory-lock retry costs nothing when there is no contention.
       # seed:check then asserts the seed's own invariants (three users and their posts).
       - name: Migrate and seed
-        if: steps.select.outputs.is_required == 'true'
+        if: steps.gate.outputs.is_required == 'true'
         run: |
           pnpm exec node scripts/ci/deploy-migrate.mjs
           pnpm run seed
@@ -110,12 +128,12 @@ jobs:
 
       # Playwright treats the listed spec paths as filters; the auth setup project
       # still runs first because the filtered projects declare it as a dependency.
-      - name: Run selected e2e tests
-        if: steps.select.outputs.is_required == 'true'
+      - name: Run the core e2e list
+        if: steps.gate.outputs.is_required == 'true'
         run: pnpm exec playwright test $(tr '\n' ' ' < e2e-specs.txt)
 
       - name: Upload Playwright report
-        if: always() && steps.select.outputs.is_required == 'true'
+        if: always() && steps.gate.outputs.is_required == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

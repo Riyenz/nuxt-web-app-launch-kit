@@ -7,7 +7,7 @@
 The project uses GitHub Actions for continuous integration. Preview databases and migrations are applied by the Vercel build, not by a GitHub job.
 
 - `.github/workflows/ci.yml` runs lint and typecheck on every pull request, plus unit tests and a build on the release PR.
-- `.github/workflows/e2e.yml` runs the Playwright specs the diff can affect, on the release PR only.
+- `.github/workflows/e2e.yml` runs the core E2E list when the diff can change the app, on the release PR only.
 - `.github/workflows/preview-db.yml` deletes a preview's Neon branch when its pull request closes. It does not create databases and it does not migrate.
 
 ### Triggers
@@ -50,9 +50,33 @@ the database stored in Vercel. See [Per-Environment Databases](neon-database-bra
 
 ### The E2E Workflow
 
-The full Playwright suite is expensive, so `scripts/ci/select-e2e-tests.mjs` maps the PR
-diff to the specs it can actually affect. When the diff selects nothing, the job ends
-after selection in about 20 seconds — no build, no seed, no browsers.
+CI runs the **core list** only: `CORE_SPECS` in `tests/e2e/suites.mjs`, the flows the product
+cannot ship without (sign-in, the dashboard, the users API). Every other spec runs on a developer
+machine before the pull request exists. Adding a spec to the release gate is a one-line edit to
+that list, and `tests/unit/e2e-gate.test.ts` fails if a name in it has no file.
+
+`scripts/ci/e2e-gate.mjs` answers one question: can this diff change how the app behaves? A diff
+of only docs, Markdown, `.claude/`, CSS, Storybook stories, other workflows or unit tests changes
+nothing at runtime, so the job stops at the gate with no build, no seed and no browser install
+(about 20 seconds). Anything under `app/`, `server/`, `shared/`, `prisma/`, `generated/`,
+`scripts/ci/` or `tests/e2e/`, `scripts/migration-phases.mjs`, a root config file, the lockfile
+or `e2e.yml` itself runs the whole core list. There is no per-spec selection: a selector guesses,
+and a wrong guess lets a regression through. To preview a decision locally:
+
+```bash
+node scripts/ci/e2e-gate.mjs --files app/pages/app/dashboard.vue
+node scripts/ci/e2e-gate.mjs --base origin/master --head HEAD
+```
+
+**No step calls apt on a normal run.** The job pins `ubuntu-24.04`, because `ubuntu-latest`
+moved to 26.04, where Playwright 1.59 cannot install Chromium. It installs the browser with
+`playwright install chromium`, without `--with-deps`: about 12 seconds from Playwright's CDN.
+`--with-deps` runs apt on every job, and a slow `azure.archive.ubuntu.com` mirror can hold that
+step for many minutes. The libraries Chromium links against are already on the runner, because
+the runner image installs Google Chrome with apt and Chrome's package depends on the same list.
+The next step, "Check Chromium launches", starts Chromium once. If a future runner image lacks a
+library, Playwright refuses to launch and names it, and only then does the step run
+`playwright install-deps chromium`, capped at 6 minutes.
 
 It runs against a Postgres service container (not Neon), migrated and seeded in the job,
 then checked with `pnpm seed:check`, and against the production build rather than the
@@ -62,17 +86,15 @@ dev server. `DB_POOL_MAX: '10'` opts out of the single-connection default in
 
 There is deliberately **no `paths-ignore`**: the job is a required status check on
 `master`, and a workflow that never triggers reports nothing — leaving a docs-only PR
-pending forever with no way to merge it. The selector's early exit already makes those
+pending forever with no way to merge it. The gate's early exit already makes those
 runs cheap.
-
-Full detail, including the rules table and its fallbacks, is in [Testing](testing.md).
 
 ### Important Notes
 
 - **Package manager**: CI uses **pnpm** (same as local development)
   - Both local and CI use pnpm for consistency
 - **Build**: only on the release PR; feature PRs rely on the Vercel preview deployment
-- **Tests**: unit tests and selected E2E specs, both on the release PR
+- **Tests**: unit tests and the core E2E list, both on the release PR
 - **Lighthouse**: only on the release PR, and only its SEO score is a gate
 - **Required secrets**: `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `NUXT_CLERK_SECRET_KEY` for the build and E2E jobs (`make setup-secrets` syncs them from `.env`)
 - **Preview databases**: a preview build creates a Neon branch named after the git branch; closing the pull request deletes it

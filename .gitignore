@@ -49,7 +49,7 @@ storybook-static
 /playwright/.cache/
 # Captured Clerk sessions, minted per run by the e2e setup project
 tests/e2e/.auth/
-# The spec list select-e2e-tests.mjs writes in CI
+# The spec list scripts/ci/e2e-gate.mjs writes in CI
 e2e-specs.txt
 
 # Agent screenshots: cached dev-server lock, Clerk sessions and PNGs
