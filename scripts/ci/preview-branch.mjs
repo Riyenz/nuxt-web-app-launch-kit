@@ -76,7 +76,8 @@ function formatSlotError(branches) {
     `Permanent and reserved (${reserved.length}):`,
     reserved.map(branch => `  - ${branch.name}`).join('\n') || '  (none)',
     '',
-    'Merge or close a pull request to release its database, then redeploy. Nothing was deleted.'
+    'Merge or close a pull request, or delete its git branch, to release that database, then '
+    + 'redeploy. Nothing was deleted.'
   ].join('\n')
 }
 
@@ -154,4 +155,21 @@ export async function deletePreviewBranch(projectId, apiKey, gitRef) {
   })
 
   return branch.name
+}
+
+// Both cleanup triggers call this. It returns the log line rather than printing it, so a test
+// can read which of the three outcomes happened.
+export async function releasePreviewBranch(projectId, apiKey, gitRef) {
+  const branchName = getPreviewBranchName(gitRef)
+
+  // A git branch called `production`, `development`, `sw-...` or `local-...` names a database
+  // this flow does not own. Deleting such a branch on GitHub must leave it alone, and must not
+  // fail the job either: nothing is wrong, there is simply nothing here to delete.
+  if (!isPreviewBranchName(branchName)) {
+    return `"${branchName}" is a permanent or reserved database name: nothing deleted`
+  }
+
+  const deleted = await deletePreviewBranch(projectId, apiKey, gitRef)
+
+  return deleted ? `Deleted preview database "${deleted}"` : 'No preview database to delete'
 }

@@ -24,11 +24,11 @@ Every isolated environment gets its own database. A preview deployment creates i
 2. Production, or the `develop` branch, or no git ref: use the stored `DATABASE_URL` and skip to step 5.
 3. Otherwise create or reuse a Neon branch named after the git branch, forked from `development`. Neon accepts a slash, so `feat/manager-role` is a valid branch name and both the build and the cleanup job derive it from the same git ref.
 4. Put that branch's direct (unpooled) connection string in the environment.
-5. Run `prisma generate`, then `scripts/ci/deploy-migrate.mjs`, then `nuxt build`.
+5. Run `prisma generate`, then `nuxt build`, then `scripts/ci/deploy-migrate.mjs`.
 
 Because one process does all five steps, the database always exists before the build that uses it. Environment does not survive between `&&` steps in a shell command, which is why they are spawned from a script rather than chained in `vercel.json`.
 
-`deploy-migrate.mjs` wakes a cold Neon compute, then runs `prisma migrate deploy`, retrying connection failures and advisory-lock errors. Migrations for production, `develop`, and every preview all run here. Nothing else migrates a deployed database.
+`deploy-migrate.mjs` wakes a cold Neon compute, then runs `prisma migrate deploy`, retrying connection failures and advisory-lock errors. Migrations for production, `develop`, and every preview all run here. Nothing else migrates a deployed database. It runs last, so the release still serving production spends as little time as possible on the new schema. On production it holds back each `*_contract` migration until the live release contains it. See [Prisma Workflow](prisma-workflow.md#expand-and-contract).
 
 ### How the live preview finds its database
 
@@ -42,13 +42,17 @@ Because one process does all five steps, the database always exists before the b
 
 The Neon Free plan allows **10 branches**. `production` and `development` are permanent, so there are **8 preview slots** — fewer if a workspace or hand-made database holds some. When they are all taken, the build **fails** and names the databases that hold them, split into previews and reserved ones. Nothing is deleted automatically to make room.
 
-A git branch named `production`, `development`, or anything starting with `sw-` or `local-` is refused before any Neon call, so a build can never migrate a database this flow does not own. Merge or close a pull request to release a slot, then redeploy.
+A git branch named `production`, `development`, or anything starting with `sw-` or `local-` is refused before any Neon call, so a build can never migrate a database this flow does not own. Merge or close a pull request, or delete its git branch, to release a slot, then redeploy.
 
 ### Cleanup
 
-`.github/workflows/preview-db.yml` releases a slot when a pull request into `develop` or `master` closes or merges. That is the only automatic deletion in the system, and it deletes exactly one database: the one named after that pull request's branch.
+`.github/workflows/preview-db.yml` releases a slot on two events: a pull request into `develop` or `master` closes or merges, and a git branch is deleted on GitHub. Those are the only automatic deletions in the system, and each run deletes exactly one database: the one named after that branch. A merge that deletes its branch fires both, and the runs queue on the branch name, so the second finds nothing left to delete. GitHub reads the `delete` trigger from the workflow file on the default branch, so a change to it takes effect once it is on `master`.
 
-**There is no scheduled sweep.** Nothing deletes a database on a timer, and nothing deletes one to make room. A branch pushed without a pull request keeps its database until somebody removes it in the Neon console. When the slots run out the next build fails and names what is holding them, and a person decides what goes.
+**A build that starts after the merge creates nothing.** Vercel can hold a build in the queue for longer than its pull request stays open, and that build would create the database again after the cleanup deleted it. Nothing deletes a second copy. So a preview build asks GitHub first (`scripts/ci/pull-request-state.mjs`): when no pull request on the branch is open and a merged or closed one carried the commit being built, the build creates no database, reuses none, and runs no migrations. The deployment is still built, so the merged branch does not show up as a failure.
+
+The commit has to be one of that pull request's own, so a push made **after** the close still gets its database. Close a pull request, push a fix, reopen it, and the preview works. The check never fails a build: no `GITHUB_PREVIEW_TOKEN`, no answer from GitHub, a fork, or no pull request yet all keep the old behaviour and create the database.
+
+**There is no scheduled sweep.** Nothing deletes a database on a timer, and nothing deletes one to make room. A live branch pushed without a pull request keeps its database until the branch is deleted or somebody removes the database in the Neon console. When the slots run out the next build fails and names what is holding them, and a person decides what goes.
 
 `production`, `development`, and any name starting with a reserved prefix — `sw-` for a workspace database, `local-` for a hand-made one — can never be created or deleted by this flow at all.
 
@@ -81,14 +85,15 @@ Teardown (`.paseo/teardown.sh`) removes the server and its storage.
 | `NEON_PROJECT_ID` | The Neon project the build creates its branch in |
 | `NEON_PREVIEW_API_KEY` | **Project-scoped** Neon API key. Not the account-wide key — a project-scoped key cannot reach any other Neon project |
 | `NEON_PARENT_BRANCH` | Optional. Defaults to `development` |
+| `GITHUB_PREVIEW_TOKEN` | Optional. Read-only GitHub token the build uses to see whether this branch's pull request already finished. **Fine-grained**, this repository only, **Pull requests: Read** (Metadata: Read comes with it), nothing else. Without it, a late build creates its database again. Give it the longest expiry: when it expires, builds carry on and only the build log says the check is off |
 
 There must be exactly **one** stored preview `DATABASE_URL`: scoped to the `develop` git branch and pointing at the shared `development` Neon branch. That is what the `develop` preview builds and runs against.
 
-There must be **no project-wide preview `DATABASE_URL`** and no other branch-scoped one. A project-wide fallback is what let a build quietly migrate the shared database. A feature-branch build with no database of its own must fail loudly.
+There must be **no project-wide preview `DATABASE_URL`** and no other branch-scoped one. A project-wide fallback is what let a build quietly migrate the shared database. A feature-branch build with no database of its own must fail loudly, except when the pull request for its commit is already finished. That build names it in its log and builds with no database at all (see Cleanup above).
 
 Even if one is re-added by mistake, a preview whose build created its own branch ignores it — the baked value wins. The rule still stands, because a `develop` build reads the stored variable directly.
 
-Vercel **Production** keeps its own hand-set `DATABASE_URL`. Never overwrite it. The production build migrates that database; there is no separate GitHub migration job.
+Vercel **Production** keeps its own hand-set `DATABASE_URL`. Never overwrite it. The production build migrates that database; there is no separate GitHub migration job. Production also needs `CRON_SECRET` (see [CI/CD](ci-cd.md#secrets)): without it every contract migration waits.
 
 ### GitHub Actions Secrets
 
@@ -111,7 +116,11 @@ Vercel **Production** keeps its own hand-set `DATABASE_URL`. Never overwrite it.
 
 ### The build fails with "Neon has no free branch slot"
 
-All 8 preview slots are taken. The error lists them. Merge or close a pull request, or delete one in the Neon console, then redeploy.
+All 8 preview slots are taken. The error lists them. Merge or close a pull request, delete its git branch, or delete one in the Neon console, then redeploy.
+
+### The build log says "this build gets no database"
+
+That branch's pull request is merged or closed, so the build created none (see Cleanup above). The deployment is built, but its app pages have no data to read. Reopen the pull request, or open a new one, and push again.
 
 ### A preview 500s on a column that exists in `prisma/schema.prisma`
 

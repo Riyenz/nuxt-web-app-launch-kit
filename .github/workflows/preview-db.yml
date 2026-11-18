@@ -5,10 +5,15 @@ name: preview-db
 # Vercel about 80 seconds after the build had already started, which is why a first push read
 # the shared fallback and why two processes once migrated the same branch at the same time.
 #
-# This workflow only releases a slot when a pull request closes. There is no scheduled sweep:
-# nothing deletes a database on a timer or to make room. A branch pushed without a pull request
-# keeps its database until somebody removes it in the Neon console, and when all the slots are
-# taken the next build fails and names what is holding them.
+# This workflow releases a slot on two events: a pull request closes, and a git branch is
+# deleted on GitHub. Each run deletes at most the one database named after that branch, and the
+# second run for the same branch finds nothing left to delete. There is no scheduled sweep:
+# nothing deletes a database on a timer or to make room. A live branch with no pull request
+# keeps its database, and when all the slots are taken the next build fails and names what is
+# holding them.
+#
+# GitHub runs a `delete` event against the workflow file on the default branch, so a change to
+# this file reaches that trigger only once it is on `master`.
 
 on:
   pull_request:
@@ -17,14 +22,20 @@ on:
       - master
     types:
       - closed
+  delete:
 
+# The branch name, not the pull request number: a merge that deletes its branch fires both
+# triggers for one database, and the two runs have to queue instead of racing.
 concurrency:
-  group: preview-db-${{ github.event.pull_request.number }}
+  group: preview-db-${{ github.event.pull_request.head.ref || github.event.ref }}
   cancel-in-progress: false
 
 jobs:
   release-slot:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # A deleted tag is not a branch, and a fork's pull request never had a preview database.
+    if: >-
+      (github.event_name == 'delete' && github.event.ref_type == 'branch')
+      || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,17 +54,17 @@ jobs:
           node-version: 22
 
       # The Neon branch is named after the git branch, because the Vercel build knows its git
-      # ref but not the pull request number. Both sides must derive the name the same way.
+      # ref but not the pull request number. Both sides must derive the name the same way. A
+      # closed pull request carries the name in the payload; a deletion carries it as the ref.
       - name: Delete the preview database
         env:
-          GIT_BRANCH: ${{ github.event.pull_request.head.ref }}
+          GIT_BRANCH: ${{ github.event.pull_request.head.ref || github.event.ref }}
         run: |
           node --input-type=module -e "
-          import { deletePreviewBranch } from './scripts/ci/preview-branch.mjs'
-          const name = await deletePreviewBranch(
+          import { releasePreviewBranch } from './scripts/ci/preview-branch.mjs'
+          console.log(await releasePreviewBranch(
             process.env.NEON_PROJECT_ID,
             process.env.NEON_API_KEY,
             process.env.GIT_BRANCH
-          )
-          console.log(name ? \`Deleted preview database \"\${name}\"\` : 'No preview database to delete')
+          ))
           "
