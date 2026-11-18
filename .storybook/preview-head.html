@@ -1,0 +1,18 @@
+<!-- @nuxtjs/color-mode calls helper methods on window.__NUXT_COLOR_MODE__, which the Nuxt server's
+     inline head script defines. Storybook has no server render, so this stands in for that script.
+     Without it, toggling the color mode throws "removeColorScheme is not a function". -->
+<script>
+  (function () {
+    var root = document.documentElement
+    root.classList.add('light')
+    window.__NUXT_COLOR_MODE__ = {
+      preference: 'light',
+      value: 'light',
+      getColorScheme: function () {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      },
+      addColorScheme: function (scheme) { root.classList.add(scheme) },
+      removeColorScheme: function (scheme) { root.classList.remove(scheme) }
+    }
+  })()
+</script>
