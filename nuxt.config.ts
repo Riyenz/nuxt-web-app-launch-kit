@@ -83,7 +83,13 @@ export default defineNuxtConfig({
       // nothing and test traffic never lands in the real project. See docs/analytics.md.
       posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY || '',
       posthogHost,
-      posthogUiHost: process.env.NUXT_PUBLIC_POSTHOG_UI_HOST || ''
+      posthogUiHost: process.env.NUXT_PUBLIC_POSTHOG_UI_HOST || '',
+      // Forces feature flags without PostHog: `key-a,key-b=false`. Keys and defaults live in
+      // shared/feature-flags.ts.
+      featureFlags: process.env.NUXT_PUBLIC_FEATURE_FLAGS || '',
+      // Every flag is on in a local run and on the develop deploy, so new work is visible before
+      // it ships. Production and branch previews keep the defaults.
+      isEveryFeatureFlagOn: !process.env.VERCEL_ENV || (process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_GIT_COMMIT_REF === 'develop')
     }
   },
 
