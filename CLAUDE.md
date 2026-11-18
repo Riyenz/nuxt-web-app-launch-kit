@@ -24,6 +24,7 @@ Read the appropriate documentation file based on your task:
 - **[Test Accounts](docs/test-accounts.md)** - Credentials and seed data for manual QA, screenshots and E2E
 - **[App Screenshots](docs/screenshots.md)** - Screenshotting a change in the running app with `pnpm shot`
 - **[Per-Environment Databases](docs/neon-database-branching.md)** - Local PGlite for worktrees, Neon branches for PR previews
+- **[Analytics](docs/analytics.md), [Feature Flags](docs/feature-flags.md), [Email](docs/email.md)** - PostHog analytics, error tracking and server logs; flags with safe defaults; Resend email. All off without their keys
 - **[CI/CD](docs/ci-cd.md)** - Understanding the CI pipeline or troubleshooting workflow failures
 
 ## Quick Start

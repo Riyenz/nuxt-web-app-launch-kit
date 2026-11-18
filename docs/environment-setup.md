@@ -86,6 +86,13 @@ NUXT_CLERK_SECRET_KEY="sk_test_..."
 | `DATABASE_URL` | Only for non-local databases | `postgresql://` | [Neon Console](https://console.neon.tech) → Project → Connection Details |
 | `NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | `pk_test_` or `pk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
 | `NUXT_CLERK_SECRET_KEY` | Yes | `sk_test_` or `sk_live_` | [Clerk Dashboard](https://dashboard.clerk.com) → API Keys |
+| `NUXT_PUBLIC_POSTHOG_KEY` | No. Production only | `phc_` | PostHog → Project settings. See [Analytics](analytics.md) |
+| `NUXT_RESEND_API_KEY`, `NUXT_RESEND_FROM_ADDRESS`, `NUXT_APP_URL` | No. Production only | `re_` (the key) | [Resend](https://resend.com) → API Keys. See [Email](email.md) |
+
+Without the optional keys, analytics, error tracking, server logs and email are off, and every
+feature flag is its default. Leave `NUXT_PUBLIC_APP_NAME` and `NUXT_PUBLIC_POSTHOG_HOST`
+commented out unless you set a value: an empty `NUXT_PUBLIC_*` line overrides the default in
+`nuxt.config.ts` with an empty string.
 
 ## Initial Setup Steps
 

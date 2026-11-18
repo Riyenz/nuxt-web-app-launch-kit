@@ -9,6 +9,8 @@
 - **UI Library**: Nuxt UI (with Tailwind CSS)
 - **Authentication**: Clerk (@clerk/nuxt)
 - **Database ORM**: Prisma with PostgreSQL (Neon adapter)
+- **Analytics, error tracking, server logs, feature flags**: PostHog (`posthog-js`, `posthog-node`, OpenTelemetry logs)
+- **Transactional email**: Resend
 - **Package Manager**: pnpm
 - **Linting**: ESLint with Nuxt ESLint module
 - **Type Checking**: TypeScript with vue-tsc

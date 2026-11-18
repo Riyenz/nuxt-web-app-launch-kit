@@ -13,13 +13,19 @@
 │   ├── components/               # Vue components (auto-imported)
 │   ├── layouts/                  # Layout components
 │   ├── middleware/               # Route middleware
+│   ├── plugins/posthog.client.ts # Browser analytics, replay and identity (docs/analytics.md)
+│   ├── composables/useFeatureFlag.ts # Feature flag reads in components
 │   ├── assets/css/               # Global CSS styles
 │   ├── lib/                      # Shared utilities
 │   │   └── prisma.ts             # Prisma Client singleton instance
 │   └── generated/prisma/         # Prisma Client output (generated, do not edit)
 ├── server/                       # Server-side code
-│   └── api/                      # API endpoints (file-based routing)
-│       └── *.get.ts              # GET endpoints (e.g., users.get.ts)
+│   ├── api/                      # API endpoints (file-based routing)
+│   │   └── *.get.ts              # GET endpoints (e.g., users.get.ts)
+│   ├── plugins/posthog.ts        # 5xx errors and request logs to PostHog
+│   └── utils/                    # PostHog client, flags, email (auto-imported)
+├── shared/                       # Code for both app and server: flag registry, email templates
+├── stories/                      # Storybook stories, including the email templates
 ├── prisma/                       # Database schema and migrations
 │   ├── schema.prisma             # Database schema definition
 │   ├── migrations/               # Migration history
