@@ -311,6 +311,10 @@ make help            # List all available commands
 | [Neon Database Branching](docs/neon-database-branching.md) | Per-workspace and per-PR databases |
 | [CI/CD](docs/ci-cd.md) | GitHub Actions workflows |
 | [Agent Workflow](docs/agent-workflow.md) | AI-assisted development workflow |
+| [Site Config, SEO and Legal Pages](docs/seo.md) | Renaming the product, adding a public page, filling in the legal templates |
+| [Incident Response](docs/incident-response.md) | What to do when personal data leaks |
+| [GLOSSARY.md](GLOSSARY.md) | The one word the product and the code use for each idea |
+| [Decision records](docs/adr/0000-template.md) | Copy the template to `docs/adr/NNNN-title.md` when a decision is hard to reverse, surprising without its context, and a real trade-off |
 
 ---
 

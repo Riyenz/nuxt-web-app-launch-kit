@@ -18,8 +18,15 @@
 │   │   └── prisma.ts             # Prisma Client singleton instance
 │   └── generated/prisma/         # Prisma Client output (generated, do not edit)
 ├── server/                       # Server-side code
-│   └── api/                      # API endpoints (file-based routing)
-│       └── *.get.ts              # GET endpoints (e.g., users.get.ts)
+│   ├── api/                      # API endpoints (file-based routing)
+│   │   └── *.get.ts              # GET endpoints (e.g., users.get.ts)
+│   ├── plugins/                  # Nitro plugins (api-cache-control.ts marks /api/ private, no-store)
+│   ├── routes/                   # robots.txt, sitemap.xml, llms.txt
+│   └── utils/                    # Server helpers (rate-limit.ts, seo-files.ts)
+├── shared/                       # Code both app/ and server/ import
+│   ├── site.ts                   # Product name, URL, contact email, public pages
+│   └── structured-data.ts        # JSON-LD builders for usePageSeo
+├── scripts/og/                   # Link preview card template and renderer (pnpm og)
 ├── prisma/                       # Database schema and migrations
 │   ├── schema.prisma             # Database schema definition
 │   ├── migrations/               # Migration history
@@ -93,3 +100,13 @@ import { prisma } from "../../app/lib/prisma";
 ```
 
 The singleton pattern in `app/lib/prisma.ts` handles hot reload and prevents connection issues. Use this import path in server-side code (API endpoints, server utilities).
+
+## API Hardening
+
+- Every `/api/` response carries `Cache-Control: private, no-store`, set by
+  `server/plugins/api-cache-control.ts` after the handler runs, so an endpoint cannot weaken it.
+- `server/utils/rate-limit.ts` counts failed attempts in the `RateLimitFailure` table, so a limit
+  holds across serverless instances and cold starts. Add a scope with its window and limit to
+  `rateLimitScopes`, call `assertNotRateLimited(event, { scope, key })` before the attempt (it
+  throws a 429 with `Retry-After`), `recordRateLimitFailure` when the attempt fails, and
+  `resetRateLimit` when it succeeds.
