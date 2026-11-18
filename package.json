@@ -30,6 +30,7 @@
     "test:e2e:install": "playwright install chromium",
     "shot": "node scripts/shot.mjs",
     "upload": "node scripts/upload.mjs",
+    "og": "tsx scripts/og/render.ts",
     "seed": "pnpm tsx prisma/seed.ts",
     "seed:check": "tsx prisma/seed-integrity.ts",
     "storybook": "STORYBOOK_DISABLE_NUXT_FONTS=1 storybook dev -p 6006",
