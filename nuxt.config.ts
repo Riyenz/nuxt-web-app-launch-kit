@@ -1,3 +1,5 @@
+import { publicPages, resolveSiteUrl } from './shared/site'
+
 if (!process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
   process.env.NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 }
@@ -70,12 +72,19 @@ export default defineNuxtConfig({
     // process.env.DATABASE_URL: baking that would put the production password in the build
     // output and in Vercel's build cache, where a rotation cannot reach it.
     // See scripts/ci/vercel-build.mjs and server/plugins/00-database-url.ts.
-    databaseUrl: process.env.PREVIEW_DATABASE_URL || ''
+    databaseUrl: process.env.PREVIEW_DATABASE_URL || '',
+    public: {
+      siteUrl: resolveSiteUrl()
+    }
   },
 
   routeRules: {
     '/': { prerender: false },
-    '/app/**': { ssr: false, prerender: false, headers: securityHeaders }
+    '/app/**': { ssr: false, prerender: false, headers: securityHeaders },
+    ...Object.fromEntries(publicPages.filter(page => page.path !== '/').map(page => [page.path, { prerender: true }])),
+    '/robots.txt': { prerender: true },
+    '/sitemap.xml': { prerender: true },
+    '/llms.txt': { prerender: true }
   },
 
   compatibilityDate: '2025-01-15',

@@ -753,6 +753,8 @@ const clerk = useClerk()
 
 const currentYear = new Date().getFullYear()
 
+usePageSeo()
+
 const navLinks = [
   { label: 'Home', to: '/#home' },
   { label: 'Clients', to: '/#clients' },
