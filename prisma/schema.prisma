@@ -25,3 +25,13 @@ model Post {
   authorId  Int
   author    User    @relation(fields: [authorId], references: [id])
 }
+
+// One row per failed attempt, keyed "<scope>:<key>" by server/utils/rate-limit.ts. Kept in
+// Postgres so the limit holds across serverless instances and cold starts.
+model RateLimitFailure {
+  id       String   @id @default(cuid())
+  key      String
+  failedAt DateTime @default(now())
+
+  @@index([key, failedAt])
+}
